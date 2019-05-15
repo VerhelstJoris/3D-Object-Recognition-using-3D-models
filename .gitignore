@@ -31,7 +31,8 @@
 *.out
 *.app
 
-# Ignore the open cv library that is present in the directory
+
+# Ignore the OpenCV library that is present in the directory
 opencv/
 
 ## Ignore Visual Studio temporary files, build results, and
