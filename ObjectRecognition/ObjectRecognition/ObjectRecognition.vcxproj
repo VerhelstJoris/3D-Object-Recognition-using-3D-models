@@ -160,15 +160,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="OpenGL\Model.cpp" />
     <ClCompile Include="OpenCV\DisplayWindow.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="OpenGL\LoadShader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OpenGL\Model.h" />
     <ClInclude Include="OpenCV\DisplayWindow.h" />
     <ClInclude Include="OpenCV\HelperFunctions.h" />
     <ClInclude Include="OpenCV\ImageOperations.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="OpenGL\Shaders\FragmentShader.glsl" />
+    <None Include="OpenGL\Shaders\VertexShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

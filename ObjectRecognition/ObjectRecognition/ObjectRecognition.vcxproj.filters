@@ -21,7 +21,7 @@
     <ClCompile Include="OpenCV\DisplayWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenGL\Model.cpp">
+    <ClCompile Include="OpenGL\LoadShader.h">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,8 +35,9 @@
     <ClInclude Include="OpenCV\HelperFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGL\Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="OpenGL\Shaders\FragmentShader.glsl" />
+    <None Include="OpenGL\Shaders\VertexShader.glsl" />
   </ItemGroup>
 </Project>
