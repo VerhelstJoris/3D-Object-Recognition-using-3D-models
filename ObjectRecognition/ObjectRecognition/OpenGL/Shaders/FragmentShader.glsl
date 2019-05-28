@@ -6,10 +6,10 @@ in vec3 fragmentColor;
 // Ouput data
 out vec3 color;
 
-void main(){
-
-	// Output color = color specified in the vertex shader, 
-	// interpolated between all 3 surrounding vertices
-	color = fragmentColor;
+void main()
+{
+	//FOR THE PURPOSED OF THE SILHOUETTE EXTRACTION
+	//SIMPLE RETURN COLOR IS IDEAL, NO SHADING OR COLOR VARIATION
+	color = vec3(0,1,0);
 
 }
