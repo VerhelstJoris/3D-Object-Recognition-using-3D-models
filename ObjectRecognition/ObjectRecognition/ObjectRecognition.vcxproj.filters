@@ -15,18 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DisplayWindow.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="OpenCV\DisplayWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGL\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DisplayWindow.h">
+    <ClInclude Include="OpenCV\DisplayWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImageOperations.h">
+    <ClInclude Include="OpenCV\ImageOperations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenCV\HelperFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

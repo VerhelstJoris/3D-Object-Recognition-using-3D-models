@@ -1,3 +1,5 @@
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 
 namespace ImageOperations //optional, just for clarity
@@ -83,8 +85,6 @@ namespace ImageOperations //optional, just for clarity
 
 		cv::cvtColor(image, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
 
-		cv::Mat kernel = cv::Mat::ones(kernelSize, kernelSize, CV_32F);	//create a kernel
-		//have some static ones globally available??
 
 		if (invertGrayScale)
 		{
@@ -98,7 +98,12 @@ namespace ImageOperations //optional, just for clarity
 			cv::threshold(temp1, temp3, thresholdValue, 255, cv::THRESH_BINARY);
 		}
 
+		cv::Mat kernel = cv::Mat::ones(kernelSize, kernelSize, CV_32F);	//create a kernel
+
+
 		cv::morphologyEx(temp3, temp1, cv::MORPH_CLOSE, kernel); //fills in the holes in the silhouette
 		cv::Canny(temp3, result, 100, 100);	
+
+		return;
 	}
 }
