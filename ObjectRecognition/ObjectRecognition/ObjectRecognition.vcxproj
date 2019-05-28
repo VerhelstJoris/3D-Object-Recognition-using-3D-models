@@ -162,11 +162,13 @@
   <ItemGroup>
     <ClCompile Include="OpenCV\DisplayWindow.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="System.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCV\DisplayWindow.h" />
     <ClInclude Include="OpenCV\HelperFunctions.h" />
     <ClInclude Include="OpenCV\ImageOperations.h" />
+    <ClInclude Include="System.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenGL\Shaders\FragmentShader.glsl" />
