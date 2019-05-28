@@ -21,9 +21,6 @@
     <ClCompile Include="OpenCV\DisplayWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenGL\LoadShader.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCV\DisplayWindow.h">
