@@ -19,7 +19,7 @@ public:
 private:
 
 	void ProcessUserInput();
-
+	bool ScreenShot(std::string fileName, int windowWidth, int windowHeight);
 private:
 
 	struct GLFWwindow* m_window;

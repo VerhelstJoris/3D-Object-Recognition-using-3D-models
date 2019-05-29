@@ -97,6 +97,8 @@ bool System::Initialize()
 	}
 	glfwMakeContextCurrent(m_window);
 
+	glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GLFW_TRUE);
+
 
 	// Initialize GLEW
 	glewExperimental = true; // Needed for core profile
@@ -234,7 +236,52 @@ void System::ProcessUserInput()
 	}
 
 
+	if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		if (ScreenShot("test.tga", 800, 600) == false)
+		{
+			std::cout << "Failed making a screenshot" << std::endl;
+		}
+	}
+
 	/* Poll for and process events */
 	glfwPollEvents();
 }
 
+bool System::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
+{
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+	int nSize = windowWidth * windowHeight * 3;
+	// create buffer
+	char* dataBuffer = (char*)malloc(nSize * sizeof(char));
+
+	if (!dataBuffer) return false;
+
+	//fetch the backbuffer
+	glReadPixels((GLint)0, (GLint)0,
+		(GLint)windowWidth, (GLint)windowHeight,
+		GL_BGR, GL_UNSIGNED_BYTE, dataBuffer);
+
+
+
+	//Now the file creation
+	FILE *filePtr = fopen(fileName.c_str(), "wb");
+	if (!filePtr) return false;
+
+
+	unsigned char TGAheader[12] = { 0,0,2,0,0,0,0,0,0,0,0,0 };
+	unsigned char header[6] = { windowWidth % 256,windowWidth / 256,
+					windowHeight % 256,windowHeight / 256,
+					24,0 };
+	// We write the headers
+	fwrite(TGAheader, sizeof(unsigned char), 12, filePtr);
+	fwrite(header, sizeof(unsigned char), 6, filePtr);
+	// And finally our image data
+	fwrite(dataBuffer, sizeof(GLubyte), nSize, filePtr);
+	fclose(filePtr);
+
+	free(dataBuffer);
+
+	return true;
+}
