@@ -1,9 +1,8 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 #include <glm.hpp>
+
 
 #include <vector>
 
@@ -23,10 +22,11 @@ private:
 
 private:
 
-	GLFWwindow* m_window;
-	GLuint m_vertexBuffer, m_uvBuffer;;
-	GLuint m_vertexArrayID, m_programID, m_MatrixID;
+	struct GLFWwindow* m_window;
+	unsigned int m_vertexBuffer, m_uvBuffer, m_vertexArrayID, m_programID, m_MatrixID;
+	std::vector<unsigned int> m_indexBuffer;;
 
+\
 	std::vector<glm::vec3> m_vertices;
 	std::vector<glm::vec2> m_uvs;
 	std::vector<glm::vec3> m_normals;	//not used rn

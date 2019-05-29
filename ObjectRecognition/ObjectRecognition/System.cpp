@@ -1,7 +1,10 @@
 #include "System.h"
 
-
 #include <stdio.h>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 
 #include <gtc/matrix_transform.hpp>
 
@@ -75,7 +78,7 @@ bool System::Initialize()
 	{
 		std::cout << "Failed to initialize GLFW" << std::endl;
 		std::cin.get();
-		return -1;
+		return false;
 
 	}
 
@@ -101,7 +104,7 @@ bool System::Initialize()
 		fprintf(stderr, "Failed to initialize GLEW\n");
 		getchar();
 		glfwTerminate();
-		return -1;
+		return false;
 	}
 
 	// Enable depth test
@@ -123,7 +126,13 @@ bool System::Initialize()
 	m_MatrixID = glGetUniformLocation(m_programID, "MVP");
 
 	// Read our .obj file
-	bool res = HelperFunctions::loadOBJ("Cube.obj", m_vertices, m_uvs, m_normals);
+	bool res = HelperFunctions::loadOBJ("../Resources/Test/Cube.obj", m_vertices, m_uvs, m_normals);
+
+	//std::vector<glm::vec3> indexed_vertices;
+	//std::vector<glm::vec2> indexed_uvs;
+	//std::vector<glm::vec3> indexed_normals;
+	//indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+
 
 	// Load it into a VBO
 
@@ -134,6 +143,8 @@ bool System::Initialize()
 	glGenBuffers(1, &m_uvBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
+
+	return true;
 }
 
 void System::Shutdown()
