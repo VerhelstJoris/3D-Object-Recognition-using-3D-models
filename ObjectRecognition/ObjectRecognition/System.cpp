@@ -144,6 +144,7 @@ bool System::Initialize()
 	glGenTextures(1, &m_renderTex);
 
 	// "Bind" the newly created texture 
+	glBindTexture(GL_TEXTURE_2D, m_renderTex);
 
 	// Give an empty image to OpenGL
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
@@ -160,6 +161,10 @@ bool System::Initialize()
 	{
 		std::cout << "Something went wrong with creating the framebuffer" << std::endl;
 		return false;
+	}
+	else
+	{
+		std::cout << "frame buffer created succesfully" << std::endl;
 	}
 
 	glGenBuffers(1, &m_vertexBuffer);
@@ -325,8 +330,11 @@ cv::Mat System::GetMatFromOpenGL()
 	unsigned char* texBytes = (unsigned char*)malloc(sizeof(unsigned char)*texWidth*texHeight * 3);
 	glGetTexImage(GL_TEXTURE_2D, 0 /* mipmap level */, GL_BGR, GL_UNSIGNED_BYTE, texBytes);
 
-	cv::Mat image = cv::Mat(texHeight, texWidth, CV_8UC3, texBytes);
-	cv::imshow("IMAGE", image);
+	cv::Mat flipped = cv::Mat(texHeight, texWidth, CV_8UC3, texBytes);
+	cv::Mat dest = flipped;
+	cv::flip(flipped, dest,0 );
+	ImageOperations::ExtractSilhouette(dest, flipped,50,50);
+	cv::imshow("IMAGE", flipped);
 
-	return image;
+	return flipped;
 }

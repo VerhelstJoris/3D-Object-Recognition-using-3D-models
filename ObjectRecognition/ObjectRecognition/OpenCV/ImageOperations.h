@@ -79,7 +79,7 @@ namespace ImageOperations //optional, just for clarity
 
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static void ExtractSilhouette(const cv::Mat& image, cv::Mat& result, int kernelSize,int thresholdValue, bool invertGrayScale = false)
+	static void ExtractSilhouette(const cv::Mat& image, cv::Mat& result, int kernelSize = 50,int thresholdValue = 50, bool invertGrayScale = false)
 	{
 		cv::Mat temp1 , temp2 , temp3;
 
