@@ -2,16 +2,19 @@
 
 #include <stdio.h>
 
+//OPENGL
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-
 #include <gtc/matrix_transform.hpp>
 
+//OPENCV
+#include <opencv2/core.hpp>
+
+//
 #include "OpenCV/DisplayWindow.h"
 #include "OpenCV/ImageOperations.h"
 #include "OpenCV/HelperFunctions.h"
-
 
 
 System::System()
@@ -93,7 +96,7 @@ bool System::Initialize()
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		return -1;
+		return false;
 	}
 	glfwMakeContextCurrent(m_window);
 
@@ -117,7 +120,6 @@ bool System::Initialize()
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
-
 	glGenVertexArrays(1, &m_vertexArrayID);
 	glBindVertexArray(m_vertexArrayID);
 
@@ -125,18 +127,40 @@ bool System::Initialize()
 	m_programID = HelperFunctions::LoadShaders("OpenGL/Shaders/VertexShader.glsl", "OpenGL/Shaders/FragmentShader.glsl");
 
 	// Get a handle for our "MVP" uniform
-	m_MatrixID = glGetUniformLocation(m_programID, "MVP");
+	m_matrixID = glGetUniformLocation(m_programID, "MVP");
 
-	// Read our .obj file
+	// Read .obj file
+	//TO-DO: REPLACE WITH MORE ROBUST FILE LOADER
 	bool res = HelperFunctions::loadOBJ("../Resources/Test/Cube.obj", m_vertices, m_uvs, m_normals);
 
-	//std::vector<glm::vec3> indexed_vertices;
-	//std::vector<glm::vec2> indexed_uvs;
-	//std::vector<glm::vec3> indexed_normals;
-	//indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+	//============================================================================================================
+	//FRAME BUFFER OBJECT == RENDER TO TEXTURE
+	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
+	m_bufferName = 0;
+	glGenFramebuffers(1, &m_bufferName);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
+
+	//the render texture
+	glGenTextures(1, &m_renderTex);
+
+	// "Bind" the newly created texture 
+
+	// Give an empty image to OpenGL
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 
-	// Load it into a VBO
+	// Set renderTex as our colour attachement #0
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_renderTex, 0);
+
+	// Set the list of draw buffers.
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Something went wrong with creating the framebuffer" << std::endl;
+		return false;
+	}
 
 	glGenBuffers(1, &m_vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -168,6 +192,10 @@ void System::Run()
 		ProcessUserInput();
 
 		//RENDERING
+		glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
+		glViewport(0, 0, 800, 600); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+
+
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -189,7 +217,7 @@ void System::Run()
 
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
-		glUniformMatrix4fv(m_MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
 
 		// 1rst attribute buffer : m_vertices
 		glEnableVertexAttribArray(0);
@@ -216,7 +244,7 @@ void System::Run()
 		);
 
 		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_vertices.size());
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
@@ -238,10 +266,12 @@ void System::ProcessUserInput()
 
 	if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
-		if (ScreenShot("test.tga", 800, 600) == false)
-		{
-			std::cout << "Failed making a screenshot" << std::endl;
-		}
+		//if (ScreenShot("test.tga", 800, 600) == false)
+		//{
+		//	std::cout << "Failed making a screenshot" << std::endl;
+		//}
+
+		GetMatFromOpenGL();
 	}
 
 	/* Poll for and process events */
@@ -252,9 +282,9 @@ bool System::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
 {
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	int nSize = windowWidth * windowHeight * 3;
+	const int nSize = windowWidth * windowHeight * 3;
 	// create buffer
-	char* dataBuffer = (char*)malloc(nSize * sizeof(char));
+	char* dataBuffer = (char*)malloc(nSize * sizeof(char));	//malloc to be able to create the buffer with a 'dynamic' size
 
 	if (!dataBuffer) return false;
 
@@ -263,13 +293,11 @@ bool System::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
 		(GLint)windowWidth, (GLint)windowHeight,
 		GL_BGR, GL_UNSIGNED_BYTE, dataBuffer);
 
-
-
 	//Now the file creation
 	FILE *filePtr = fopen(fileName.c_str(), "wb");
 	if (!filePtr) return false;
-
-
+	
+	
 	unsigned char TGAheader[12] = { 0,0,2,0,0,0,0,0,0,0,0,0 };
 	unsigned char header[6] = { windowWidth % 256,windowWidth / 256,
 					windowHeight % 256,windowHeight / 256,
@@ -281,7 +309,24 @@ bool System::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
 	fwrite(dataBuffer, sizeof(GLubyte), nSize, filePtr);
 	fclose(filePtr);
 
-	free(dataBuffer);
+	free(dataBuffer);	//release the buffer created with malloc
 
 	return true;
+}
+
+cv::Mat System::GetMatFromOpenGL()
+{
+	glBindTexture(GL_TEXTURE_2D, m_bufferName);
+	GLenum texWidth, texHeight;
+
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&texWidth);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, (GLint*)&texHeight);
+
+	unsigned char* texBytes = (unsigned char*)malloc(sizeof(unsigned char)*texWidth*texHeight * 3);
+	glGetTexImage(GL_TEXTURE_2D, 0 /* mipmap level */, GL_BGR, GL_UNSIGNED_BYTE, texBytes);
+
+	cv::Mat image = cv::Mat(texHeight, texWidth, CV_8UC3, texBytes);
+	cv::imshow("IMAGE", image);
+
+	return image;
 }

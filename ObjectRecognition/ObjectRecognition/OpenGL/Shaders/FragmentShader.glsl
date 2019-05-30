@@ -4,6 +4,9 @@
 in vec3 fragmentColor;
 
 // Ouput data
+//layout(location = 0) out vec3 color;
+
+// Ouput data
 out vec3 color;
 
 void main()
