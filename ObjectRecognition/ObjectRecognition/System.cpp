@@ -167,6 +167,21 @@ bool System::Initialize()
 		std::cout << "frame buffer created succesfully" << std::endl;
 	}
 
+	// The fullscreen quad's FBO
+	static const GLfloat quadVertexBufferData[] = {
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
+	};
+
+	glGenBuffers(1, &m_quadVertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_quadVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexBufferData), quadVertexBufferData, GL_STATIC_DRAW);
+
+
 	glGenBuffers(1, &m_vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
@@ -283,6 +298,7 @@ void System::ProcessUserInput()
 	glfwPollEvents();
 }
 
+//SAVES THE OUTPUT IMAGE TO A TGA FILE
 bool System::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
 {
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -333,8 +349,7 @@ cv::Mat System::GetMatFromOpenGL()
 	cv::Mat flipped = cv::Mat(texHeight, texWidth, CV_8UC3, texBytes);
 	cv::Mat dest = flipped;
 	cv::flip(flipped, dest,0 );
-	ImageOperations::ExtractSilhouette(dest, flipped,50,50);
-	cv::imshow("IMAGE", flipped);
+	ImageOperations::ExtractSilhouette(dest, flipped);
 
 	return flipped;
 }

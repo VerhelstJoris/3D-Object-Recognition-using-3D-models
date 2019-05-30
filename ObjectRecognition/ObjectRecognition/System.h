@@ -28,7 +28,7 @@ private:
 
 	struct GLFWwindow* m_window;
 	unsigned int m_vertexBuffer, m_uvBuffer, m_vertexArrayID, m_programID, m_matrixID;	//GLUINT
-	unsigned int m_renderTex, m_bufferName;			//GLUINT
+	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer;			//GLUINT
 	std::vector<unsigned int> m_indexBuffer;
 
 
