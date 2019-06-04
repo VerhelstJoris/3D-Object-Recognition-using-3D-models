@@ -91,6 +91,7 @@ bool System::Initialize()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);	//only use core profile
 
 
+	//create the window
 	m_window = glfwCreateWindow(m_WindowWidth, m_WindowHeight, "ModelViewer", NULL, NULL);
 	if (m_window == NULL)
 	{
@@ -100,6 +101,7 @@ bool System::Initialize()
 	}
 	glfwMakeContextCurrent(m_window);
 
+	//sticky keys
 	glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GLFW_TRUE);
 
 
@@ -133,13 +135,20 @@ bool System::Initialize()
 	//TO-DO: REPLACE WITH MORE ROBUST FILE LOADER
 	bool res = HelperFunctions::loadOBJ("../Resources/Test/Cube.obj", m_vertices, m_uvs, m_normals);
 
+	//vertexbuffer for our .obj model
+	glGenBuffers(1, &m_vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
+
+	//uvbuffer holding the uv coordinates of our .obj
+	glGenBuffers(1, &m_uvBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
+
+
 	//============================================================================================================
 	//FRAME BUFFER OBJECT == RENDER TO TEXTURE
 	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
-	m_quadProgramID = HelperFunctions::LoadShaders("OpenGL/Shaders/PassThroughVertexShader.glsl", "OpenGL/Shaders/TextureFragmentShader.glsl");
-	m_texID = glGetUniformLocation(m_quadProgramID, "renderedTexture");
-	m_timeID = glGetUniformLocation(m_quadProgramID, "time");
-
 	m_bufferName = 0;
 	glGenFramebuffers(1, &m_bufferName);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
@@ -153,6 +162,11 @@ bool System::Initialize()
 	// Give an empty image to OpenGL
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_WindowWidth, m_WindowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
+	// Poor filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Set renderTex as our colour attachement #0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_renderTex, 0);
@@ -172,6 +186,7 @@ bool System::Initialize()
 	}
 
 	// The fullscreen quad's FBO
+
 	static const GLfloat quadVertexBufferData[] = {
 		-1.0f, -1.0f, 0.0f,
 		 1.0f, -1.0f, 0.0f,
@@ -181,18 +196,17 @@ bool System::Initialize()
 		 1.0f,  1.0f, 0.0f,
 	};
 
+	
+	//vertex buffer for the quad that we render our post-processed texture to
 	glGenBuffers(1, &m_quadVertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_quadVertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexBufferData), quadVertexBufferData, GL_STATIC_DRAW);
 
+	//loading the post-processing shaders
+	m_quadProgramID = HelperFunctions::LoadShaders("OpenGL/Shaders/PassThroughVertexShader.glsl", "OpenGL/Shaders/TextureFragmentShader.glsl");
+	m_texID = glGetUniformLocation(m_quadProgramID, "renderedTexture");
+	m_timeID = glGetUniformLocation(m_quadProgramID, "time");
 
-	glGenBuffers(1, &m_vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &m_uvBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
-	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
 
 	return true;
 }
@@ -205,6 +219,11 @@ void System::Shutdown()
 	glDeleteVertexArrays(1, &m_vertexArrayID);
 	glDeleteProgram(m_programID);
 
+	glDeleteFramebuffers(1, &m_bufferName);
+	glDeleteTextures(1, &m_renderTex);
+	glDeleteBuffers(1, &m_quadVertexBuffer);
+	glDeleteVertexArrays(1, &m_vertexArrayID);
+
 	glfwTerminate();
 }
 
@@ -214,6 +233,8 @@ void System::Run()
 	{
 		//INPUT
 		ProcessUserInput();
+
+	#pragma region RENDERING
 
 		//RENDERING
 		glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
@@ -276,9 +297,10 @@ void System::Run()
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 
+	#pragma endregion 
 
-		// POST-PROCESSINGm RENDER TO THE SCREEN
-		//===================================================================================
+	#pragma region POST-PROCESSING
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Render on the whole framebuffer, complete from the lower left corner to the upper right
 		glViewport(0, 0, m_WindowWidth, m_WindowHeight);
@@ -292,9 +314,9 @@ void System::Run()
 		// Bind our texture in Texture Unit 0
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_renderTex);
+
 		// Set our "renderedTexture" sampler to use Texture Unit 0
 		glUniform1i(m_texID, 0);
-
 		glUniform1f(m_timeID, (float)(glfwGetTime()*10.0f));
 
 		// 1rst attribute buffer : vertices
@@ -314,6 +336,7 @@ void System::Run()
 
 		glDisableVertexAttribArray(0);
 
+	#pragma endregion
 
 		// Swap buffers
 		glfwSwapBuffers(m_window);
