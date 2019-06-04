@@ -24,11 +24,15 @@ private:
 	bool ScreenShot(std::string fileName, int windowWidth, int windowHeight);
 	cv::Mat GetMatFromOpenGL();
 
+	const int m_WindowWidth = 800, m_WindowHeight = 600;
+
 private:
 
 	struct GLFWwindow* m_window;
 	unsigned int m_vertexBuffer, m_uvBuffer, m_vertexArrayID, m_programID, m_matrixID;	//GLUINT
-	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer;			//GLUINT
+
+	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT
+	unsigned int m_timeID;
 	std::vector<unsigned int> m_indexBuffer;
 
 

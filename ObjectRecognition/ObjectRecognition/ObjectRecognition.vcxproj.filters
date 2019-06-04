@@ -42,5 +42,7 @@
   <ItemGroup>
     <None Include="OpenGL\Shaders\FragmentShader.glsl" />
     <None Include="OpenGL\Shaders\VertexShader.glsl" />
+    <None Include="OpenGL\Shaders\PassThroughVertexShader.glsl" />
+    <None Include="OpenGL\Shaders\TextureFragmentShader.glsl" />
   </ItemGroup>
 </Project>

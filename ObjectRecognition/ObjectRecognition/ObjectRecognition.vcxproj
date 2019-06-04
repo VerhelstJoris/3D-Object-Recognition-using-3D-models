@@ -172,6 +172,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenGL\Shaders\FragmentShader.glsl" />
+    <None Include="OpenGL\Shaders\PassThroughVertexShader.glsl" />
+    <None Include="OpenGL\Shaders\TextureFragmentShader.glsl" />
     <None Include="OpenGL\Shaders\VertexShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

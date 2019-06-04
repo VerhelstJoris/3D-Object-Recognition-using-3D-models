@@ -91,7 +91,7 @@ bool System::Initialize()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);	//only use core profile
 
 
-	m_window = glfwCreateWindow(800, 600, "ModelViewer", NULL, NULL);
+	m_window = glfwCreateWindow(m_WindowWidth, m_WindowHeight, "ModelViewer", NULL, NULL);
 	if (m_window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -136,6 +136,10 @@ bool System::Initialize()
 	//============================================================================================================
 	//FRAME BUFFER OBJECT == RENDER TO TEXTURE
 	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
+	m_quadProgramID = HelperFunctions::LoadShaders("OpenGL/Shaders/PassThroughVertexShader.glsl", "OpenGL/Shaders/TextureFragmentShader.glsl");
+	m_texID = glGetUniformLocation(m_quadProgramID, "renderedTexture");
+	m_timeID = glGetUniformLocation(m_quadProgramID, "time");
+
 	m_bufferName = 0;
 	glGenFramebuffers(1, &m_bufferName);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
@@ -147,7 +151,7 @@ bool System::Initialize()
 	glBindTexture(GL_TEXTURE_2D, m_renderTex);
 
 	// Give an empty image to OpenGL
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_WindowWidth, m_WindowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 
 	// Set renderTex as our colour attachement #0
@@ -213,7 +217,7 @@ void System::Run()
 
 		//RENDERING
 		glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
-		glViewport(0, 0, 800, 600); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+		glViewport(0, 0, m_WindowWidth, m_WindowHeight); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 
 
 		// Clear the screen
@@ -230,6 +234,7 @@ void System::Run()
 			glm::vec3(0, 0, 0), // and looks at the origin
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
+
 		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		//glm::mat4 ViewMatrix = getViewMatrix();
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
@@ -238,6 +243,8 @@ void System::Run()
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
 		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
+		//glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+		//glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
 
 		// 1rst attribute buffer : m_vertices
 		glEnableVertexAttribArray(0);
@@ -268,6 +275,45 @@ void System::Run()
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+
+
+		// POST-PROCESSINGm RENDER TO THE SCREEN
+		//===================================================================================
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// Render on the whole framebuffer, complete from the lower left corner to the upper right
+		glViewport(0, 0, m_WindowWidth, m_WindowHeight);
+
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Use our shader
+		glUseProgram(m_quadProgramID);
+
+		// Bind our texture in Texture Unit 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_renderTex);
+		// Set our "renderedTexture" sampler to use Texture Unit 0
+		glUniform1i(m_texID, 0);
+
+		glUniform1f(m_timeID, (float)(glfwGetTime()*10.0f));
+
+		// 1rst attribute buffer : vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, m_quadVertexBuffer);
+		glVertexAttribPointer(
+			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+
+		// Draw the triangles !
+		glDrawArrays(GL_TRIANGLES, 0, 6); // 2*3 indices starting at 0 -> 2 triangles
+
+		glDisableVertexAttribArray(0);
+
 
 		// Swap buffers
 		glfwSwapBuffers(m_window);
@@ -346,10 +392,11 @@ cv::Mat System::GetMatFromOpenGL()
 	unsigned char* texBytes = (unsigned char*)malloc(sizeof(unsigned char)*texWidth*texHeight * 3);
 	glGetTexImage(GL_TEXTURE_2D, 0 /* mipmap level */, GL_BGR, GL_UNSIGNED_BYTE, texBytes);
 
-	cv::Mat flipped = cv::Mat(texHeight, texWidth, CV_8UC3, texBytes);
+	cv::Mat flipped = cv::Mat(texHeight, texWidth, CV_8UC3, texBytes); // this is the flipped image
 	cv::Mat dest = flipped;
-	cv::flip(flipped, dest,0 );
-	ImageOperations::ExtractSilhouette(dest, flipped);
+	cv::flip(flipped, dest,0 );	
+	ImageOperations::ExtractSilhouette(dest, flipped);	//extract the silhouette from non-flipped and put it back in 'flipped'
 
+	cv::imshow("main", flipped);
 	return flipped;
 }
