@@ -8,6 +8,8 @@
 
 #include <gtc/matrix_transform.hpp>
 
+#include <gtx/euler_angles.hpp>
+
 //OPENCV
 #include <opencv2/core.hpp>
 
@@ -130,6 +132,8 @@ bool System::Initialize()
 
 	// Get a handle for our "MVP" uniform
 	m_matrixID = glGetUniformLocation(m_programID, "MVP");
+	m_viewMatrixID = glGetUniformLocation(m_programID, "V");
+	m_modelMatrixID = glGetUniformLocation(m_programID, "M");
 
 	// Read .obj file
 	//TO-DO: REPLACE WITH MORE ROBUST FILE LOADER
@@ -145,7 +149,7 @@ bool System::Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
 
-
+	#pragma region POST-PROCESSING
 	//============================================================================================================
 	//FRAME BUFFER OBJECT == RENDER TO TEXTURE
 	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
@@ -205,8 +209,8 @@ bool System::Initialize()
 	//loading the post-processing shaders
 	m_quadProgramID = HelperFunctions::LoadShaders("OpenGL/Shaders/PassThroughVertexShader.glsl", "OpenGL/Shaders/TextureFragmentShader.glsl");
 	m_texID = glGetUniformLocation(m_quadProgramID, "renderedTexture");
-	m_timeID = glGetUniformLocation(m_quadProgramID, "time");
 
+	#pragma endregion
 
 	return true;
 }
@@ -251,21 +255,32 @@ void System::Run()
 		//computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 		glm::mat4 ViewMatrix = glm::lookAt(
-			glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
+			glm::vec3(0, 0, 7), // Camera is here, in World Space
 			glm::vec3(0, 0, 0), // and looks at the origin
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
 
 		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		//glm::mat4 ViewMatrix = getViewMatrix();
-		glm::mat4 ModelMatrix = glm::mat4(1.0);
+		//glm::mat4 ModelMatrix = glm::mat4(1.0);
+
+
+		//m_Orientation.y += 3.14159f / 2.0f * 1.0f;
+		//
+		// Build the model matrix
+		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
+		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(), glm::vec3(0,0,0)); 
+		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
+		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
+
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
 
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
 		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
-		//glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-		//glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
 
 		// 1rst attribute buffer : m_vertices
 		glEnableVertexAttribArray(0);
@@ -317,7 +332,6 @@ void System::Run()
 
 		// Set our "renderedTexture" sampler to use Texture Unit 0
 		glUniform1i(m_texID, 0);
-		glUniform1f(m_timeID, (float)(glfwGetTime()*10.0f));
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
