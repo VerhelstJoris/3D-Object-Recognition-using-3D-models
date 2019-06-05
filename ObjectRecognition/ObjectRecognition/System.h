@@ -34,10 +34,14 @@ private:
 	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT
 	std::vector<unsigned int> m_indexBuffer;
 
-	glm::vec3 m_Orientation = glm::vec3(0.0f,0.0f,0.0f);
-	
 	std::vector<glm::vec3> m_vertices;
 	std::vector<glm::vec2> m_uvs;
 	std::vector<glm::vec3> m_normals;	//not used rn
+
+	//orientation of the object
+	glm::vec3 m_Orientation = glm::vec3(0.0f, 1.0f, 0.0f);;
+
+	float m_AngleDifferenceDegrees = 6.0f;
+
 };
 

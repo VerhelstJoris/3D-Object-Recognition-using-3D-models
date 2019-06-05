@@ -251,8 +251,6 @@ void System::Run()
 		// Use our shader
 		glUseProgram(m_programID);
 
-		// Compute the MVP matrix from keyboard and mouse input
-		//computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 		glm::mat4 ViewMatrix = glm::lookAt(
 			glm::vec3(0, 0, 7), // Camera is here, in World Space
@@ -260,29 +258,7 @@ void System::Run()
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
 
-		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
-		//glm::mat4 ViewMatrix = getViewMatrix();
-		//glm::mat4 ModelMatrix = glm::mat4(1.0);
-
-
-		//m_Orientation.y += 3.14159f / 2.0f * 1.0f;
-		//
-		// Build the model matrix
-		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
-		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(), glm::vec3(0,0,0)); 
-		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
-		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
-
-		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-
-
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
-
-		// 1rst attribute buffer : m_vertices
+		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 		glVertexAttribPointer(
@@ -294,7 +270,7 @@ void System::Run()
 			(void*)0            // array buffer offset
 		);
 
-		// 2nd attribute buffer : UVs
+		//2nd attribute buffer : UVs
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
 		glVertexAttribPointer(
@@ -305,6 +281,30 @@ void System::Run()
 			0,                                // stride
 			(void*)0                          // array buffer offset
 		);
+
+
+
+		//MODEL MATRICES
+		//==============================================
+		//m_Orientation.y += 3.14159f / 2.0f * m_AngleDifferenceDegrees;
+		m_Orientation.y += (m_AngleDifferenceDegrees * 0.01745329252);			//degree to radian
+		std::cout << m_Orientation.y *  57.295779513f << std::endl;
+
+		// Build the model matrix
+		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
+		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
+		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0f, 1.0f, 1.0f));			//scale (1,1,1)
+		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
+
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+
+		// Send our transformation to the currently bound shader, 
+		// in the "MVP" uniform
+		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+
 
 		// Draw the triangle !
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_vertices.size());
@@ -354,6 +354,7 @@ void System::Run()
 
 		// Swap buffers
 		glfwSwapBuffers(m_window);
+
 	}
 }
 
