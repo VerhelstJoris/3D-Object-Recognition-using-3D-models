@@ -162,13 +162,13 @@
   <ItemGroup>
     <ClCompile Include="OpenCV\DisplayWindow.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="System.cpp" />
+    <ClCompile Include="OpenGL\OGLRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCV\DisplayWindow.h" />
-    <ClInclude Include="OpenCV\HelperFunctions.h" />
+    <ClInclude Include="OpenGL\OGLHelperFunctions.h" />
     <ClInclude Include="OpenCV\ImageOperations.h" />
-    <ClInclude Include="System.h" />
+    <ClInclude Include="OpenGL\OGLRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenGL\Shaders\FragmentShader.glsl" />

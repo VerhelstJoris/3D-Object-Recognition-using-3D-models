@@ -1,16 +1,18 @@
 
 
-#include "System.h"
+#include "OpenGL/OGLRenderer.h"
 
+#include <vector>
+#include <opencv2/core.hpp>
 
 int main(void)
 {
-
-	System* systemObject;
+	//OPENGL object renderer
+	OGLRenderer* systemObject;
 	bool result;
 
 	// Create the system object.
-	systemObject = new System;
+	systemObject = new OGLRenderer;
 	if (!systemObject)
 	{
 		return 0;
@@ -21,8 +23,12 @@ int main(void)
 	{
 		systemObject->Run();
 	}
+	//retrieve the vector of cv::Mat screenshots from the renderer
+	std::vector<cv::Mat> m_screenShots = systemObject->GetScreenRenders();
 
-	// Shutdown and release the system object.
+
+
+	// Shutdown and release the OPENGL object.
 	systemObject->Shutdown();
 	delete systemObject;
 	systemObject = 0;

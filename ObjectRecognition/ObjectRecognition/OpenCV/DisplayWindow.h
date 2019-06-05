@@ -6,7 +6,6 @@
 #include <opencv2/highgui.hpp>
 
 
-
 class DisplayWindow
 {
 public:

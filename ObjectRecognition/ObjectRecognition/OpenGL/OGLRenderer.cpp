@@ -1,34 +1,33 @@
-#include "System.h"
+#include "OGLRenderer.h"
 
 #include <stdio.h>
+#include <iostream>
 
 //OPENGL
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <gtc/matrix_transform.hpp>
-
 #include <gtx/euler_angles.hpp>
+
+#include "OGLHelperFunctions.h"
 
 //OPENCV
 #include <opencv2/core.hpp>
 
-//
-#include "OpenCV/DisplayWindow.h"
-#include "OpenCV/ImageOperations.h"
-#include "OpenCV/HelperFunctions.h"
 
 
-System::System()
+
+OGLRenderer::OGLRenderer()
 {
 }
 
 
-System::~System()
+OGLRenderer::~OGLRenderer()
 {
 }
 
-bool System::Initialize()
+bool OGLRenderer::Initialize()
 {
 	////OPENCV
 	//Mat image1, image2, destination1, destination2;
@@ -128,7 +127,7 @@ bool System::Initialize()
 	glBindVertexArray(m_vertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	m_programID = HelperFunctions::LoadShaders("OpenGL/Shaders/VertexShader.glsl", "OpenGL/Shaders/FragmentShader.glsl");
+	m_programID = OGLHelperFunctions::LoadShaders("OpenGL/Shaders/VertexShader.glsl", "OpenGL/Shaders/FragmentShader.glsl");
 
 	// Get a handle for our "MVP" uniform
 	m_matrixID = glGetUniformLocation(m_programID, "MVP");
@@ -137,7 +136,7 @@ bool System::Initialize()
 
 	// Read .obj file
 	//TO-DO: REPLACE WITH MORE ROBUST FILE LOADER
-	bool res = HelperFunctions::loadOBJ("../Resources/Test/Cube.obj", m_vertices, m_uvs, m_normals);
+	bool res = OGLHelperFunctions::loadOBJ("../Resources/Test/Cube.obj", m_vertices, m_uvs, m_normals);
 
 	//vertexbuffer for our .obj model
 	glGenBuffers(1, &m_vertexBuffer);
@@ -207,15 +206,18 @@ bool System::Initialize()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexBufferData), quadVertexBufferData, GL_STATIC_DRAW);
 
 	//loading the post-processing shaders
-	m_quadProgramID = HelperFunctions::LoadShaders("OpenGL/Shaders/PassThroughVertexShader.glsl", "OpenGL/Shaders/TextureFragmentShader.glsl");
+	m_quadProgramID = OGLHelperFunctions::LoadShaders("OpenGL/Shaders/PassThroughVertexShader.glsl", "OpenGL/Shaders/TextureFragmentShader.glsl");
 	m_texID = glGetUniformLocation(m_quadProgramID, "renderedTexture");
 
 	#pragma endregion
 
+
+	//GENERAL
+
 	return true;
 }
 
-void System::Shutdown()
+void OGLRenderer::Shutdown()
 {
 	// Cleanup VBO
 	glDeleteBuffers(1, &m_vertexBuffer);
@@ -231,7 +233,7 @@ void System::Shutdown()
 	glfwTerminate();
 }
 
-void System::Run()
+void OGLRenderer::Run()
 {
 	while (!glfwWindowShouldClose(m_window))
 	{
@@ -286,9 +288,12 @@ void System::Run()
 
 		//MODEL MATRICES
 		//==============================================
-		//m_Orientation.y += 3.14159f / 2.0f * m_AngleDifferenceDegrees;
-		m_Orientation.y += (m_AngleDifferenceDegrees * 0.01745329252);			//degree to radian
-		std::cout << m_Orientation.y *  57.295779513f << std::endl;
+		//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
+		if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+		{
+			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
+			std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
+		}
 
 		// Build the model matrix
 		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
@@ -354,12 +359,21 @@ void System::Run()
 
 		// Swap buffers
 		glfwSwapBuffers(m_window);
-
+		if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+		{
+			m_renders.push_back(GetMatFromOpenGL(m_bufferName));
+			m_amountOfRenders++;
+		}
+		else
+		{
+			std::cout << "ScreenShots Taken" << std::endl;
+			glfwSetWindowShouldClose(m_window, true);
+		}
 	}
 }
 
 
-void System::ProcessUserInput()
+void OGLRenderer::ProcessUserInput()
 {
 	//close on pressing escape
 	if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -375,7 +389,7 @@ void System::ProcessUserInput()
 		//	std::cout << "Failed making a screenshot" << std::endl;
 		//}
 
-		GetMatFromOpenGL();
+		//GetMatFromOpenGL(m_bufferName);
 	}
 
 	/* Poll for and process events */
@@ -383,7 +397,7 @@ void System::ProcessUserInput()
 }
 
 //SAVES THE OUTPUT IMAGE TO A TGA FILE
-bool System::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
+bool OGLRenderer::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
 {
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
@@ -419,9 +433,9 @@ bool System::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
 	return true;
 }
 
-cv::Mat System::GetMatFromOpenGL()
+cv::Mat OGLRenderer::GetMatFromOpenGL(GLuint buffer)
 {
-	glBindTexture(GL_TEXTURE_2D, m_bufferName);
+	glBindTexture(GL_TEXTURE_2D, buffer);
 	GLenum texWidth, texHeight;
 
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&texWidth);
@@ -430,11 +444,13 @@ cv::Mat System::GetMatFromOpenGL()
 	unsigned char* texBytes = (unsigned char*)malloc(sizeof(unsigned char)*texWidth*texHeight * 3);
 	glGetTexImage(GL_TEXTURE_2D, 0 /* mipmap level */, GL_BGR, GL_UNSIGNED_BYTE, texBytes);
 
+
+	//create a cv::mat with the specified dimensions, format and size
 	cv::Mat flipped = cv::Mat(texHeight, texWidth, CV_8UC3, texBytes); // this is the flipped image
 	cv::Mat dest = flipped;
 	cv::flip(flipped, dest,0 );	
-	ImageOperations::ExtractSilhouette(dest, flipped);	//extract the silhouette from non-flipped and put it back in 'flipped'
+	//ImageOperations::ExtractSilhouette(dest, flipped);	//extract the silhouette from non-flipped and put it back in 'flipped'
 
-	cv::imshow("main", flipped);
+	//cv::imshow("main", flipped);
 	return flipped;
 }

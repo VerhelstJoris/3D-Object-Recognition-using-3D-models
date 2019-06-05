@@ -21,7 +21,7 @@
     <ClCompile Include="OpenCV\DisplayWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System.cpp">
+    <ClCompile Include="OpenGL\OGLRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +32,10 @@
     <ClInclude Include="OpenCV\ImageOperations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenCV\HelperFunctions.h">
+    <ClInclude Include="OpenGL\OGLRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System.h">
+    <ClInclude Include="OpenGL\OGLHelperFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
