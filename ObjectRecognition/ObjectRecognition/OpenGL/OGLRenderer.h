@@ -14,7 +14,7 @@ public:
 	OGLRenderer();
 	~OGLRenderer();
 
-	bool Initialize();
+	bool Initialize(const char* modelFilePath);
 	void Shutdown();
 	void Run();
 
@@ -26,8 +26,7 @@ private:
 	bool ScreenShot(std::string fileName, int windowWidth, int windowHeight);
 	cv::Mat GetMatFromOpenGL(unsigned int buffer);
 
-
-
+	
 public:
 	const int m_WindowWidth = 800, m_WindowHeight = 600;
 

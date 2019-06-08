@@ -27,56 +27,8 @@ OGLRenderer::~OGLRenderer()
 {
 }
 
-bool OGLRenderer::Initialize()
+bool OGLRenderer::Initialize(const char* modelFilePath)
 {
-	////OPENCV
-	//Mat image1, image2, destination1, destination2;
-	//image1 = imread("../Resources/Stopsign/render1.png"); // Read the file
-	//image2 = imread("../Resources/Stopsign/render3.png"); // Read the file
-	//destination1 = image1;
-	//destination2 = image2;
-	//
-	//if (image1.empty()) // Check for invalid input
-	//{
-	//	cout << "Could not open or find the image" << std::endl;
-	//	return -1;
-	//}
-	//if (image2.empty()) // Check for invalid input
-	//{
-	//	cout << "Could not open or find the image" << std::endl;
-	//	return -1;
-	//}
-	//
-	////MAIN WINDOW
-	//DisplayWindow* m_MainWindow = new DisplayWindow("MAIN", WINDOW_NORMAL);
-	//m_MainWindow->ChangeWindowSize(1920, 540);
-	//m_MainWindow->ChangeWindowTitle("Main");
-	//
-	//cv::Mat doubleImage(image1.rows, image1.cols * 2, image1.type());
-	//
-	//image1.copyTo(doubleImage(cv::Rect(0, 0, image1.cols, image1.rows)));
-	//image2.copyTo(doubleImage(cv::Rect(image1.cols, 0, image1.cols, image1.rows)));
-	//
-	//cv::imshow(m_MainWindow->GetName(), doubleImage);
-	//
-	////SILHOUETTE WINDOW
-	//DisplayWindow* m_SecondWindow = new DisplayWindow("SILHOUETTE", WINDOW_NORMAL);
-	//m_SecondWindow->ChangeWindowSize(1920, 540);
-	//m_SecondWindow->ChangeWindowTitle("Silhouettes");
-	//
-	//ImageOperations::ExtractSilhouette(image1, destination1, 50, 15, false);
-	//ImageOperations::ExtractSilhouette(image2, destination2, 50, 15, false);
-	//
-	//cv::Mat doubleSilhouette(destination1.rows, destination1.cols * 2, destination1.type());
-	//
-	//destination1.copyTo(doubleSilhouette(cv::Rect(0, 0, destination1.cols, destination1.rows)));
-	//destination2.copyTo(doubleSilhouette(cv::Rect(destination1.cols, 0, destination1.cols, destination1.rows)));
-	//
-	//cv::imshow(m_SecondWindow->GetName(), doubleSilhouette);
-
-	//OPENGL
-	//============================================================
-
 	/* Initialize the library */
 	if (!glfwInit())
 	{
@@ -136,7 +88,7 @@ bool OGLRenderer::Initialize()
 
 	// Read .obj file
 	//TO-DO: REPLACE WITH MORE ROBUST FILE LOADER
-	bool res = OGLHelperFunctions::loadOBJ("../Resources/Test/Cube.obj", m_vertices, m_uvs, m_normals);
+	bool res = OGLHelperFunctions::loadOBJ(modelFilePath, m_vertices, m_uvs, m_normals);
 
 	//vertexbuffer for our .obj model
 	glGenBuffers(1, &m_vertexBuffer);

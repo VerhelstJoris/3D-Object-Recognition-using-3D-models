@@ -41,7 +41,7 @@ namespace ImageOperations //optional, just for clarity
 		double timeAfter = (double)cv::getTickCount();
 
 		double timeTake = (timeAfter-timeBefore) / cv::getTickFrequency();
-		std::cout << "Color Reduction Operation Time: " << timeTake << std::endl;
+		//std::cout << "Color Reduction Operation Time: " << timeTake << std::endl;
 		return I;
 	}
 
