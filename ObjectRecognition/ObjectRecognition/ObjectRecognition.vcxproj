@@ -160,11 +160,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="OpenCV\ContourMatcher.cpp" />
     <ClCompile Include="OpenCV\DisplayWindow.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OpenGL\OGLRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OpenCV\ContourMatcher.h" />
     <ClInclude Include="OpenCV\DisplayWindow.h" />
     <ClInclude Include="OpenGL\OGLHelperFunctions.h" />
     <ClInclude Include="OpenCV\ImageOperations.h" />

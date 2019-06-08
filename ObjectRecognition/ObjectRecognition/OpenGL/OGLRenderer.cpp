@@ -349,7 +349,7 @@ void OGLRenderer::ProcessUserInput()
 }
 
 //SAVES THE OUTPUT IMAGE TO A TGA FILE
-bool OGLRenderer::ScreenShot(std::string fileName, int windowWidth, int windowHeight)
+bool OGLRenderer::ScreenShot(const std::string fileName, const int windowWidth,const int windowHeight)
 {
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
@@ -385,7 +385,7 @@ bool OGLRenderer::ScreenShot(std::string fileName, int windowWidth, int windowHe
 	return true;
 }
 
-cv::Mat OGLRenderer::GetMatFromOpenGL(GLuint buffer)
+cv::Mat OGLRenderer::GetMatFromOpenGL(const GLuint buffer)
 {
 	glBindTexture(GL_TEXTURE_2D, buffer);
 	GLenum texWidth, texHeight;

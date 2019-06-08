@@ -79,7 +79,7 @@ namespace ImageOperations //optional, just for clarity
 
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static void ExtractSilhouette(const cv::Mat& image, cv::Mat& result, int kernelSize = 50,int thresholdValue = 50, bool invertGrayScale = false)
+	static void ExtractContour(const cv::Mat& image, std::vector<std::vector<cv::Point>> result, int kernelSize = 50,int thresholdValue = 50, bool invertGrayScale = false)
 	{
 		cv::Mat temp1 , temp2 , temp3;
 
@@ -102,7 +102,8 @@ namespace ImageOperations //optional, just for clarity
 
 
 		cv::morphologyEx(temp3, temp1, cv::MORPH_CLOSE, kernel); //fills in the holes in the silhouette
-		cv::Canny(temp3, result, 100, 100);	
+		//cv::Canny(temp3, result, 100, 100);	
+		cv::findContours(temp3, result, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
 		return;
 	}

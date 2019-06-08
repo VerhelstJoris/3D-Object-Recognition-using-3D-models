@@ -23,8 +23,8 @@ public:
 private:
 
 	void ProcessUserInput();
-	bool ScreenShot(std::string fileName, int windowWidth, int windowHeight);
-	cv::Mat GetMatFromOpenGL(unsigned int buffer);
+	bool ScreenShot(const std::string fileName,const int windowWidth,const int windowHeight);
+	cv::Mat GetMatFromOpenGL(const unsigned int buffer);
 
 	
 public:
