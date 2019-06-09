@@ -16,8 +16,6 @@
 #include <opencv2/core.hpp>
 
 
-
-
 OGLRenderer::OGLRenderer()
 {
 }
