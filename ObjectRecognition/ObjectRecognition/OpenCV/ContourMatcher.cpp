@@ -44,7 +44,7 @@ void ContourMatcher::GenerateContours()
 		//TO-DO: RESERVE THE SIZE
 		std::vector<cv::Point> contourSingle;
 
-		ImageOperations::ExtractContour(m_renders[i], contourSingle);
+		ImageOperations::ExtractContourFromRender(m_renders[i], contourSingle);
 
 		//copy contourSignle into m_contours
 		m_contours.push_back(contourSingle);
@@ -74,7 +74,7 @@ int ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 {
 	//get contours of  image
 	std::vector<cv::Point> imageContours;
-	ImageOperations::ExtractContour(image, imageContours);
+	ImageOperations::ExtractContourFromImage(image, imageContours);
 
 
 	//actually match test

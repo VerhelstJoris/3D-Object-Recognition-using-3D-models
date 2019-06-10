@@ -79,7 +79,7 @@ namespace ImageOperations //optional, just for clarity
 
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static void ExtractContour(const cv::Mat& image, std::vector<cv::Point>& result, int kernelSize = 50,int thresholdValue = 50, bool invertGrayScale = false)
+	static void ExtractContourFromImage(const cv::Mat& image, std::vector<cv::Point>& result, int kernelSize = 50,int thresholdValue = 50, bool invertGrayScale = false)
 	{
 		cv::Mat temp1 , temp2 , temp3;
 
@@ -106,6 +106,26 @@ namespace ImageOperations //optional, just for clarity
 		std::vector<std::vector<cv::Point>> contours;
 
 		cv::findContours(temp3, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+		//make vector of vector<vector<point>> to just vector<point>
+		for (size_t vecElement = 0; vecElement < contours.size(); vecElement++)
+		{
+			result.insert(result.end(), contours.at(vecElement).begin(), contours.at(vecElement).end());
+		}
+
+		return;
+	}
+
+	static void ExtractContourFromRender(const cv::Mat& image, std::vector<cv::Point>& result, int kernelSize = 50, int thresholdValue = 50, bool invertGrayScale = false)
+	{
+		cv::Mat temp;
+
+		cv::cvtColor(image, temp, cv::COLOR_BGR2GRAY);	// image to grayscale
+
+		//cv::Canny(temp3, result, 100, 100);	
+		std::vector<std::vector<cv::Point>> contours;
+
+		cv::findContours(temp, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
 		//make vector of vector<vector<point>> to just vector<point>
 		for (size_t vecElement = 0; vecElement < contours.size(); vecElement++)

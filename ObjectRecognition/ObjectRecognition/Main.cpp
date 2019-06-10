@@ -48,7 +48,7 @@ int main(void)
 
 
 	//CONTOUR MATCHING TEST
-	cv::Mat testImg = cv::imread("../Resources/Test/Capture3.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/Capture.jpg");
 	
 	int testResult =	matchingObject->MatchImgAgainstContours(testImg);
 
