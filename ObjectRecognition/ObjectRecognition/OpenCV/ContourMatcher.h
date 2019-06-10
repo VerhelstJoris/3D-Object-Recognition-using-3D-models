@@ -30,7 +30,7 @@ public:
 	~ContourMatcher();
 
 public:
-	double MatchImgAgainstContours(cv::Mat image);
+	int MatchImgAgainstContours(cv::Mat image);
 
 	bool Initialize(std::vector<cv::Mat>& renders);
 
@@ -40,7 +40,7 @@ private:
 	void GenerateContours();
 
 	std::vector<cv::Mat> m_renders;
-	std::vector<std::vector<std::vector<cv::Point>>> m_contours;
+	std::vector<std::vector<cv::Point>> m_contours;
 
 	//CAN'T USE UNTIL FWD DECLARATION WORKS
 	//cv::Size m_imageSize;

@@ -40,26 +40,25 @@ int main(void)
 
 	//retrieve the vector of cv::Mat screenshots from the renderer
 	matchingObject->Initialize(systemObject->GetScreenRenders());
-
-	//cv::namedWindow("Contour");
-	//
-	//cv::imshow("Contour", matchingObject->ContourToMat(0));
+	
+	// Shutdown and release the OPENGL object.
+	systemObject->Shutdown();
+	delete systemObject;
+	systemObject = 0;
 
 
 	//CONTOUR MATCHING TEST
 	cv::Mat testImg = cv::imread("../Resources/Test/Capture3.jpg");
 	
-	double testResult =	matchingObject->MatchImgAgainstContours(testImg);
+	int testResult =	matchingObject->MatchImgAgainstContours(testImg);
 
-	std::cout << testResult << std::endl;
+	//imshow("ContourFit", matchingObject->ContourToMat(testResult));
+	imshow("ContourFit", matchingObject->ContourToMat(1));
+	imshow("TestImage", testImg);
 	
 	cv::waitKey();
 	std::cin.get();
 
-	// Shutdown and release the OPENGL object.
-	systemObject->Shutdown();
-	delete systemObject;
-	systemObject = 0;
 
 	return 0;
 }
