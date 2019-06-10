@@ -63,10 +63,9 @@ cv::Mat ContourMatcher::ContourToMat(int contourID)
 
 	cv::Scalar color = cv::Scalar(255, 0, 0);
 	std::vector<cv::Vec4i> hierarchy;
-	for (size_t i = 0; i < m_contours[contourID].size(); i++)
-	{
-		cv::drawContours(drawing, m_contours[contourID], i, color, 2, 8, hierarchy, 0, cv::Point());
-	}
+	
+	//cv::drawContours(drawing, m_contours[contourID], 0, color, 2, 8, hierarchy, 0, cv::Point());
+	cv::drawContours(drawing, m_contours, contourID, color, 2, 8, hierarchy, 0, cv::Point());
 	
 	return drawing;
 }

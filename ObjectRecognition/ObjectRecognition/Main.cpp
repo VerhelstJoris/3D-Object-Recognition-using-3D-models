@@ -52,8 +52,7 @@ int main(void)
 	
 	int testResult =	matchingObject->MatchImgAgainstContours(testImg);
 
-	//imshow("ContourFit", matchingObject->ContourToMat(testResult));
-	imshow("ContourFit", matchingObject->ContourToMat(1));
+	imshow("ContourFit", matchingObject->ContourToMat(testResult));
 	imshow("TestImage", testImg);
 	
 	cv::waitKey();
