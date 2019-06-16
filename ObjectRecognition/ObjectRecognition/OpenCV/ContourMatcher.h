@@ -3,8 +3,6 @@
 
 #include <vector>
 
-
-
 namespace cv 
 { 
 	class Mat;
@@ -34,7 +32,10 @@ public:
 
 	bool Initialize(std::vector<cv::Mat>& renders);
 
+	double GetAverageAreaRenders() { return m_averageArea; };
+
 	cv::Mat ContourToMat(int contourID);
+
 
 private:
 	void GenerateContours();
@@ -45,6 +46,8 @@ private:
 	//CAN'T USE UNTIL FWD DECLARATION WORKS
 	//cv::Size m_imageSize;
 	int m_width, m_height;
+
+	double m_averageArea;
 
 };
 

@@ -5,6 +5,7 @@
 
 #include <vector>
 
+
 namespace cv{class Mat;}	//forward declaration
 //namespace glm { struct vec2; struct vec3; }
 

@@ -88,6 +88,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath)
 	//TO-DO: REPLACE WITH MORE ROBUST FILE LOADER
 	bool res = OGLHelperFunctions::loadOBJ(modelFilePath, m_vertices, m_uvs, m_normals);
 
+
 	//vertexbuffer for our .obj model
 	glGenBuffers(1, &m_vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);

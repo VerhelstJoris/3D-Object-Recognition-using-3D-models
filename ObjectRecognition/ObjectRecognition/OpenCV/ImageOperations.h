@@ -1,50 +1,28 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
-
+#include <opencv2/photo.hpp>
 
 namespace ImageOperations //optional, just for clarity
 {
 	//the higher the divisionValue, the less color variation there will be in the image
-	static cv::Mat& ColorReduction(cv::Mat& I, int divisionValue=100)
+	static void colorReduce(cv::Mat& image, int div = 64)
 	{
-		double timeBefore = (double)cv::getTickCount();
+		int nl = image.rows;                    // number of lines
+		int nc = image.cols * image.channels(); // number of elements per line
 
-		//uchar has value 0 to 256
-		uchar table[256];
-		for (int i = 0; i < 256; ++i)
+		for (int j = 0; j < nl; j++)
 		{
-			table[i] = (uchar)(divisionValue * (i / divisionValue));
-		}
+			// get the address of row j
+			uchar* data = image.ptr<uchar>(j);
 
-
-		// accept only char type matrices
-		CV_Assert(I.depth() == CV_8U);
-		int channels = I.channels();
-		int nRows = I.rows;
-		int nCols = I.cols * channels;
-		if (I.isContinuous())
-		{
-			nCols *= nRows;
-			nRows = 1;
-		}
-		int i, j;
-		uchar* p;
-		for (i = 0; i < nRows; ++i)
-		{
-			p = I.ptr<uchar>(i);
-			for (j = 0; j < nCols; ++j)
+			for (int i = 0; i < nc; i++)
 			{
-				p[j] = table[p[j]];
+				// process each pixel
+				data[i] = data[i] / div * div + div / 2;
 			}
 		}
-
-		double timeAfter = (double)cv::getTickCount();
-
-		double timeTake = (timeAfter-timeBefore) / cv::getTickFrequency();
-		//std::cout << "Color Reduction Operation Time: " << timeTake << std::endl;
-		return I;
 	}
-
+	
 	//Increase the contrast of the image
 	//myImage is the image that you want to sharpen
 	//result is stored in the second parameter variable
@@ -79,39 +57,38 @@ namespace ImageOperations //optional, just for clarity
 
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static void ExtractContourFromImage(const cv::Mat& image, std::vector<cv::Point>& result, int kernelSize = 50,int thresholdValue = 50, bool invertGrayScale = false)
+	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult, double contourArea, int kernelSize = 50,int thresholdValue = 50)
 	{
-		cv::Mat temp1 , temp2 , temp3;
-
-		cv::cvtColor(image, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
+		cv::Mat temp1 , temp2;
 
 
-		if (invertGrayScale)
-		{
-			//INVERT
-			bitwise_not(temp1, temp2);
-			cv::threshold(temp2, temp3, thresholdValue, 255, cv::THRESH_BINARY_INV);		
-			//threshold = set pixels under min value to 0,
-		}
-		else
-		{
-			cv::threshold(temp1, temp3, thresholdValue, 255, cv::THRESH_BINARY);
-		}
-
-		cv::Mat kernel = cv::Mat::ones(kernelSize, kernelSize, CV_32F);	//create a kernel
-
-
-		cv::morphologyEx(temp3, temp1, cv::MORPH_CLOSE, kernel); //fills in the holes in the silhouette
-		//cv::Canny(temp3, result, 100, 100);	
+		cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
+		colorReduce(temp1,64);
+		cv::cvtColor(temp1, temp2, cv::COLOR_BGR2GRAY);	// image to grayscale
+		cv::blur(temp2, temp1, cv::Size(3, 3));
+		
+		cv::Canny(temp1, temp2, 0, 100);
+		
 		std::vector<std::vector<cv::Point>> contours;
 
-		cv::findContours(temp3, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+		cv::findContours(temp2, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
-		//make vector of vector<vector<point>> to just vector<point>
-		for (size_t vecElement = 0; vecElement < contours.size(); vecElement++)
+		//remove unnecessary contours
+		for (size_t i = 0; i < contours.size();)
 		{
-			result.insert(result.end(), contours.at(vecElement).begin(), contours.at(vecElement).end());
+			double area = cv::contourArea(contours[i]);
+			if (area <= 500)
+			{
+				contours.erase(contours.begin() + i);
+				std::cout << "my 'King Crimson' erases elements and skips past them" << std::endl;
+			}
+			else
+			{
+				i++;
+			}
 		}
+
+		result = contours;
 
 		return;
 	}

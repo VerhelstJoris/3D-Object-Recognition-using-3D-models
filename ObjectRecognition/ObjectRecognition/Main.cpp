@@ -9,8 +9,25 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
+#include "OpenCV/ImageOperations.h"
+
+//assimp test
+//#include <assimp/scene.h>
+//#include <assimp/Importer.hpp>
+//#include <assimp/postprocess.h>
+
 int main(void)
 {
+
+	//Assimp::Importer Importer;
+	//
+	//const aiScene* pScene = Importer.ReadFile("../Resources/Stopsign/StopSign.obj", aiProcess_CalcTangentSpace |
+	//	aiProcess_Triangulate |
+	//	aiProcess_JoinIdenticalVertices |
+	//	aiProcess_SortByPType);
+	//
+	//std::cout << "IMPORTED BOI" << std::endl;
+
 	//OPENGL object renderer
 	OGLRenderer* systemObject;
 	ContourMatcher* matchingObject;
@@ -48,16 +65,61 @@ int main(void)
 
 
 	//CONTOUR MATCHING TEST
-	cv::Mat testImg = cv::imread("../Resources/Test/Capture.jpg");
-	
-	int testResult =	matchingObject->MatchImgAgainstContours(testImg);
+	//cv::Mat testImg = cv::imread("../Resources/Test/Capture.jpg");
+	//
+	//int testResult =	matchingObject->MatchImgAgainstContours(testImg);
+	//
+	//imshow("ContourFit", matchingObject->ContourToMat(testResult));
 
-	imshow("ContourFit", matchingObject->ContourToMat(testResult));
+
+	cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
+
+
+	std::vector<std::vector<cv::Point>> contourTestImg;
+	std::vector<cv::Vec4i> contourHierarchy;
+	
+	std::cout << matchingObject->GetAverageAreaRenders() << std::endl;
+
+	ImageOperations::ExtractContourFromImage(testImg, contourTestImg, contourHierarchy, matchingObject->GetAverageAreaRenders());
+	
+	//DRAW CONTOURS
+	auto size = testImg.size();
+	cv::Mat drawing = cv::Mat::zeros(size.height, size.width, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
+	
+	cv::Scalar color;
+	std::vector<cv::Vec4i> hierarchy;
+	
+	cv::RNG rng(12345);
+	
+	for (int i = 0; i < contourTestImg.size(); i++)
+	{
+		cv::Scalar color;
+		//if (contourHierarchy[i][2] != -1) 
+		{
+			// random colour
+	
+			color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+			drawContours(drawing, contourTestImg, i, color, 0.5, 8, hierarchy, 0, cv::Point());
+		}
+	
+		//if (contourHierarchy[i][3] != -1)
+		//{
+		//	color = cv::Scalar(255, 0, 0);
+		//}
+		//else
+		//{
+		//	color = cv::Scalar(0, 255, 0);
+		//}
+	}
+
+	imshow("Contour", drawing);
 	imshow("TestImage", testImg);
+	//int id = matchingObject->MatchImgAgainstContours(testImg);
+	//imshow("TestContours", matchingObject->ContourToMat(id));
+
 	
 	cv::waitKey();
-	std::cin.get();
-
+	cv::destroyAllWindows();
 
 	return 0;
 }
