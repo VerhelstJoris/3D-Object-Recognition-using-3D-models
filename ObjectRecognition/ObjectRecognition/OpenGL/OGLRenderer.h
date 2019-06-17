@@ -21,7 +21,7 @@ public:
 	OGLRenderer();
 	~OGLRenderer();
 
-	bool Initialize(const char* modelFilePath);
+	bool Initialize(const char* modelFilePath, int windowWidth, int windowHeight);
 	void Shutdown();
 	void Run();
 
@@ -36,7 +36,7 @@ private:
 	void ConvertMatToTexture(cv::Mat& image, unsigned int& imageTexture);
 	
 public:
-	const int m_WindowWidth = 800, m_WindowHeight = 600;
+	int m_WindowWidth, m_WindowHeight;
 
 private:
 

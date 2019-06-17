@@ -117,11 +117,11 @@ int ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 
 	std::cout << "Render with ID: " << lowestRenderID << " is the best fit with value: " << lowestResult << " to contour " << lowestContourID << std::endl;
 
-	cv::Mat drawing = cv::Mat::zeros(image.size().height, image.size().width, CV_8UC3);
-	cv::Scalar color = cv::Scalar(255,0,0);
-	std::vector<cv::Vec4i> hierarchy;
-	drawContours(drawing, imageContours, lowestContourID, color, 0.5, 8, hierarchy, 0, cv::Point());
-	imshow("CONTOURMATCH", drawing);
+	//cv::Mat drawing = cv::Mat::zeros(image.size().height, image.size().width, CV_8UC3);
+	//cv::Scalar color = cv::Scalar(255,0,0);
+	//std::vector<cv::Vec4i> hierarchy;
+	//drawContours(drawing, imageContours, lowestContourID, color, 0.5, 8, hierarchy, 0, cv::Point());
+	//imshow("CONTOURMATCH", drawing);
 
 
 	return lowestRenderID;

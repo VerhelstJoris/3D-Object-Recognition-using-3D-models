@@ -26,8 +26,11 @@ OGLRenderer::~OGLRenderer()
 {
 }
 
-bool OGLRenderer::Initialize(const char* modelFilePath)
+bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int windowHeight)
 {
+	m_WindowWidth= windowWidth;
+	m_WindowHeight = windowHeight;
+
 	/* Initialize the library */
 	if (!glfwInit())
 	{
@@ -68,8 +71,8 @@ bool OGLRenderer::Initialize(const char* modelFilePath)
 
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LEQUAL);
+	glDepthRange(-1.0f, 1.0f);
 
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
@@ -141,7 +144,6 @@ bool OGLRenderer::Initialize(const char* modelFilePath)
 	}
 
 	// The fullscreen quad's FBO
-	// z-value 0 for SCREEN_NEAR -1 for SCREEN_FAR
 	static const GLfloat quadVertexBufferData[] = {
 		-1.0f, -1.0f, -1.0f,
 		 1.0f, -1.0f, -1.0f,
@@ -198,8 +200,8 @@ void OGLRenderer::Run()
 		ProcessUserInput();
 
 	#pragma region RENDERING
-		if (m_mode == RENDERER_MODE::GENERATERENDERS)
-		{
+		//if (m_mode == RENDERER_MODE::GENERATERENDERS)
+		//{
 
 			//RENDERING
 			glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
@@ -251,7 +253,7 @@ void OGLRenderer::Run()
 			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
 			{
 				m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
-				std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
+				//std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
 			}
 
 			// Build the model matrix
@@ -275,17 +277,19 @@ void OGLRenderer::Run()
 
 			glDisableVertexAttribArray(0);
 			glDisableVertexAttribArray(1);
-		}
+
+			std::cout << "MODEL DRAWN" << std::endl;
+		//}
 	#pragma endregion 
 
 	#pragma region POST-PROCESSING
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Render on the whole framebuffer, complete from the lower left corner to the upper right
-		glViewport(0, 0, m_WindowWidth, m_WindowHeight);
+		//glViewport(0, 0, m_WindowWidth, m_WindowHeight);
 
 		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Use our shader
 		glUseProgram(m_quadProgramID);
@@ -316,8 +320,13 @@ void OGLRenderer::Run()
 			(void*)0            // array buffer offset
 		);
 
+		//glEnable(GL_DEPTH_CLAMP);
+
 		// Draw the triangles !
 		glDrawArrays(GL_TRIANGLES, 0, 6); // 2*3 indices starting at 0 -> 2 triangles
+
+		//glDisable(GL_DEPTH_CLAMP);
+
 
 		glDisableVertexAttribArray(0);
 
@@ -407,7 +416,7 @@ void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-		cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
+		//cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
 		glTexImage2D(GL_TEXTURE_2D,         // Type of texture
 			0,                   // Pyramid level (for mip-mapping) - 0 is the top level
