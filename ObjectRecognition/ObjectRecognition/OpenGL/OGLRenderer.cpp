@@ -14,6 +14,7 @@
 
 //OPENCV
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 
 OGLRenderer::OGLRenderer()
@@ -140,14 +141,14 @@ bool OGLRenderer::Initialize(const char* modelFilePath)
 	}
 
 	// The fullscreen quad's FBO
-
+	// z-value 0 for SCREEN_NEAR -1 for SCREEN_FAR
 	static const GLfloat quadVertexBufferData[] = {
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
 	};
 
 	
@@ -181,93 +182,100 @@ void OGLRenderer::Shutdown()
 	glDeleteBuffers(1, &m_quadVertexBuffer);
 	glDeleteVertexArrays(1, &m_vertexArrayID);
 
+	glDeleteTextures(1, &m_MatTex);
+
 	glfwTerminate();
 }
 
 void OGLRenderer::Run()
 {
-	while (!glfwWindowShouldClose(m_window))
+	bool keepRunning = true;
+
+	while (keepRunning==true)
+	//while (!glfwWindowShouldClose(m_window))
 	{
 		//INPUT
 		ProcessUserInput();
 
 	#pragma region RENDERING
-
-		//RENDERING
-		glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
-		glViewport(0, 0, m_WindowWidth, m_WindowHeight); // Render on the whole framebuffer, complete from the lower left corner to the upper right
-
-
-		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Use our shader
-		glUseProgram(m_programID);
-
-		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
-		glm::mat4 ViewMatrix = glm::lookAt(
-			glm::vec3(0, 0, 7), // Camera is here, in World Space
-			glm::vec3(0, 0, 0), // and looks at the origin
-			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-		);
-
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-		glVertexAttribPointer(
-			0,                  // attribute
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
-
-		//2nd attribute buffer : UVs
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
-		glVertexAttribPointer(
-			1,                                // attribute
-			2,                                // size
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-		);
-
-
-
-		//MODEL MATRICES
-		//==============================================
-		//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
-		if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
-			std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
+
+			//RENDERING
+			glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
+			glViewport(0, 0, m_WindowWidth, m_WindowHeight); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+
+
+			// Clear the screen
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			// Use our shader
+			glUseProgram(m_programID);
+
+			glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+			glm::mat4 ViewMatrix = glm::lookAt(
+				glm::vec3(0, 0, 7), // Camera is here, in World Space
+				glm::vec3(0, 0, 0), // and looks at the origin
+				glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+			);
+
+			// 1rst attribute buffer : vertices
+			glEnableVertexAttribArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+			glVertexAttribPointer(
+				0,                  // attribute
+				3,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				0,                  // stride
+				(void*)0            // array buffer offset
+			);
+
+			//2nd attribute buffer : UVs
+			glEnableVertexAttribArray(1);
+			glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
+			glVertexAttribPointer(
+				1,                                // attribute
+				2,                                // size
+				GL_FLOAT,                         // type
+				GL_FALSE,                         // normalized?
+				0,                                // stride
+				(void*)0                          // array buffer offset
+			);
+
+
+
+			//MODEL MATRICES
+			//==============================================
+			//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
+			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+			{
+				m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
+				std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
+			}
+
+			// Build the model matrix
+			glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
+			glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
+			glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0f, 1.0f, 1.0f));			//scale (1,1,1)
+			glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
+
+			glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+
+			// Send our transformation to the currently bound shader, 
+			// in the "MVP" uniform
+			glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
+			glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+			glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+
+
+			// Draw the triangle !
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_vertices.size());
+
+			glDisableVertexAttribArray(0);
+			glDisableVertexAttribArray(1);
 		}
-
-		// Build the model matrix
-		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
-		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
-		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0f, 1.0f, 1.0f));			//scale (1,1,1)
-		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
-
-		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-
-
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
-
-
-		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_vertices.size());
-
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-
 	#pragma endregion 
 
 	#pragma region POST-PROCESSING
@@ -284,8 +292,15 @@ void OGLRenderer::Run()
 
 		// Bind our texture in Texture Unit 0
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_renderTex);
 
+		if (m_mode == RENDERER_MODE::GENERATERENDERS)
+		{
+			glBindTexture(GL_TEXTURE_2D, m_renderTex);
+		}
+		else if (m_mode == RENDERER_MODE::DISPLAY)
+		{
+			glBindTexture(GL_TEXTURE_2D, m_MatTex);
+		}
 		// Set our "renderedTexture" sampler to use Texture Unit 0
 		glUniform1i(m_texID, 0);
 
@@ -310,15 +325,20 @@ void OGLRenderer::Run()
 
 		// Swap buffers
 		glfwSwapBuffers(m_window);
-		if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+
+		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			m_renders.push_back(GetMatFromOpenGL(m_bufferName));
-			m_amountOfRenders++;
-		}
-		else
-		{
-			std::cout << "ScreenShots Taken" << std::endl;
-			glfwSetWindowShouldClose(m_window, true);
+			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+			{
+				m_renders.push_back(ConvertOpenGLToMat(m_bufferName));
+				m_amountOfRenders++;
+			}
+			else
+			{
+				std::cout << "ScreenShots Taken" << std::endl;
+				//glfwSetWindowShouldClose(m_window, true);
+				keepRunning = false;
+			}
 		}
 	}
 }
@@ -347,44 +367,7 @@ void OGLRenderer::ProcessUserInput()
 	glfwPollEvents();
 }
 
-//SAVES THE OUTPUT IMAGE TO A TGA FILE
-bool OGLRenderer::ScreenShot(const std::string fileName, const int windowWidth,const int windowHeight)
-{
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-	const int nSize = windowWidth * windowHeight * 3;
-	// create buffer
-	char* dataBuffer = (char*)malloc(nSize * sizeof(char));	//malloc to be able to create the buffer with a 'dynamic' size
-
-	if (!dataBuffer) return false;
-
-	//fetch the backbuffer
-	glReadPixels((GLint)0, (GLint)0,
-		(GLint)windowWidth, (GLint)windowHeight,
-		GL_BGR, GL_UNSIGNED_BYTE, dataBuffer);
-
-	//Now the file creation
-	FILE *filePtr = fopen(fileName.c_str(), "wb");
-	if (!filePtr) return false;
-	
-	
-	unsigned char TGAheader[12] = { 0,0,2,0,0,0,0,0,0,0,0,0 };
-	unsigned char header[6] = { windowWidth % 256,windowWidth / 256,
-					windowHeight % 256,windowHeight / 256,
-					24,0 };
-	// We write the headers
-	fwrite(TGAheader, sizeof(unsigned char), 12, filePtr);
-	fwrite(header, sizeof(unsigned char), 6, filePtr);
-	// And finally our image data
-	fwrite(dataBuffer, sizeof(GLubyte), nSize, filePtr);
-	fclose(filePtr);
-
-	free(dataBuffer);	//release the buffer created with malloc
-
-	return true;
-}
-
-cv::Mat OGLRenderer::GetMatFromOpenGL(const GLuint buffer)
+cv::Mat OGLRenderer::ConvertOpenGLToMat(const GLuint buffer)
 {
 	glBindTexture(GL_TEXTURE_2D, buffer);
 	GLenum texWidth, texHeight;
@@ -404,4 +387,49 @@ cv::Mat OGLRenderer::GetMatFromOpenGL(const GLuint buffer)
 
 	//cv::imshow("main", flipped);
 	return flipped;
+}
+
+void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
+{
+	if (image.empty()) {
+		std::cout << "image empty" << std::endl;
+	}
+	else {
+
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glGenTextures(1, &imageTexture);
+		glBindTexture(GL_TEXTURE_2D, imageTexture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// Set texture clamping method
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+		cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
+
+		glTexImage2D(GL_TEXTURE_2D,         // Type of texture
+			0,                   // Pyramid level (for mip-mapping) - 0 is the top level
+			GL_RGB,              // Internal colour format to convert to
+			image.cols,          // Image width  i.e. 640 for Kinect in standard mode
+			image.rows,          // Image height i.e. 480 for Kinect in standard mode
+			0,                   // Border width in pixels (can either be 1 or 0)
+			GL_RGB,              // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
+			GL_UNSIGNED_BYTE,    // Image data type
+			image.ptr());        // The actual image data itself
+	}
+
+	std::cout << "Finished Converting Image" << std::endl;
+}
+
+void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
+{
+	std::cout << "Switching Display Modes" << std::endl;
+	m_mode = RENDERER_MODE::DISPLAY;
+
+
+	cv::Mat flipped;
+	cv::flip(imageToConvert, flipped,0);
+	ConvertMatToTexture(flipped, m_MatTex);
 }

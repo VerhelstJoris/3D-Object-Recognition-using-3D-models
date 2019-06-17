@@ -55,9 +55,24 @@ namespace ImageOperations //optional, just for clarity
 		Result.col(Result.cols - 1).setTo(cv::Scalar(0));
 	}
 
+	static double GetShapeFactor(std::vector<cv::Point> contour)
+	{
+		double area = cv::contourArea(contour);
+		double arc = cv::arcLength(contour, true);
+
+		double squareness = 4 * 3.14159f * area / (arc * arc);
+
+		return squareness;
+	}
+
+	static bool inRange(double low, double high, double x)
+	{
+		return (low <= x && x <= high);
+	}
+
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult, double contourArea, int kernelSize = 50,int thresholdValue = 50)
+	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult, double contourArea, double contourShapeFactor, int kernelSize = 50,int thresholdValue = 50)
 	{
 		cv::Mat temp1 , temp2;
 
@@ -77,13 +92,14 @@ namespace ImageOperations //optional, just for clarity
 		for (size_t i = 0; i < contours.size();)
 		{
 			double area = cv::contourArea(contours[i]);
-			if (area <= 500)
+			if (area <= 500 /*|| !inRange(contourShapeFactor-0.1, contourShapeFactor+0.1, GetShapeFactor(contours[i]))*/)
 			{
 				contours.erase(contours.begin() + i);
-				std::cout << "my 'King Crimson' erases elements and skips past them" << std::endl;
+				//std::cout << "my 'King Crimson' erases elements and skips past them" << std::endl;
 			}
 			else
 			{
+				std::cout << GetShapeFactor(contours[i]) << "VS: " << contourShapeFactor << std::endl;
 				i++;
 			}
 		}
@@ -112,4 +128,6 @@ namespace ImageOperations //optional, just for clarity
 
 		return;
 	}
+
+
 }

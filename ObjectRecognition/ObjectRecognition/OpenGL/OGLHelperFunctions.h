@@ -10,6 +10,7 @@
 namespace OGLHelperFunctions //optional, just for clarity
 {
 
+
 	static GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
 
 		// Create the shaders

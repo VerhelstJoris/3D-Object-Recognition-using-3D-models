@@ -9,6 +9,12 @@
 namespace cv{class Mat;}	//forward declaration
 //namespace glm { struct vec2; struct vec3; }
 
+enum RENDERER_MODE
+{
+	GENERATERENDERS,
+	DISPLAY
+};
+
 class OGLRenderer
 {
 public:
@@ -19,14 +25,15 @@ public:
 	void Shutdown();
 	void Run();
 
+	void SwitchToDisplayMode(cv::Mat imageToConvert);
+
 	std::vector<cv::Mat> GetScreenRenders() { return m_renders; };
 
 private:
 
 	void ProcessUserInput();
-	bool ScreenShot(const std::string fileName,const int windowWidth,const int windowHeight);
-	cv::Mat GetMatFromOpenGL(const unsigned int buffer);
-
+	cv::Mat ConvertOpenGLToMat(const unsigned int buffer);
+	void ConvertMatToTexture(cv::Mat& image, unsigned int& imageTexture);
 	
 public:
 	const int m_WindowWidth = 800, m_WindowHeight = 600;
@@ -49,8 +56,10 @@ private:
 	float m_angleDifferenceDegrees = 6.0f;
 	int m_amountOfRenders = 0;
 
+	RENDERER_MODE m_mode = RENDERER_MODE::GENERATERENDERS;
+
 	//OPENCV
 	std::vector<cv::Mat> m_renders;
-
+	unsigned int m_MatTex;
 };
 

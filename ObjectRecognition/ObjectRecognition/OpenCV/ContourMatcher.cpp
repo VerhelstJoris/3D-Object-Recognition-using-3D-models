@@ -39,6 +39,7 @@ void ContourMatcher::GenerateContours()
 	m_height = size.height;
 
 	double averageArea=0;
+	double averageSquareness = 0;
 
 	for (size_t i = 0; i < m_renders.size(); i++)
 	{
@@ -51,14 +52,15 @@ void ContourMatcher::GenerateContours()
 		//copy contourSignle into m_contours
 		m_contours.push_back(contourSingle);
 	
+		averageSquareness += ImageOperations::GetShapeFactor(contourSingle);
 		averageArea += cv::contourArea(contourSingle);
 
 		std::cout << "finished copying vector into single vector" << std::endl;
 	}
 	
-	std::cout << averageArea << std::endl;
 	m_averageArea = averageArea / (double)m_renders.size();
-	std::cout << m_averageArea << std::endl;
+	m_averageSquareness = averageSquareness / (double)m_renders.size();
+	std::cout << m_averageSquareness << std::endl;
 
 	std::cout << "Finished generating the contours of " << m_renders.size() << " renders" << std::endl;
 }
@@ -82,7 +84,7 @@ int ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	//get contours of  image
 	std::vector<std::vector<cv::Point>> imageContours;
 	std::vector<cv::Vec4i> contourHierarchy;
-	ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy, m_averageArea);
+	ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy, m_averageArea, m_averageSquareness);
 
 
 	//NEW
@@ -113,31 +115,6 @@ int ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	
 	}
 
-
-	//OLD
-	//==========================================================
-	////actually match test
-	//double lowestResult = 25.0;
-	//int lowestRenderID = 0;
-	//for (size_t i = 0; i < m_renders.size(); i++)
-	//{
-	//	double resultMatch = 0.0;
-	//
-	//	//test by matching Mat against Mat (both single channel)
-	//	cv::Mat temp;
-	//	cv::Canny(m_renders[i], temp, 100, 100);
-	//	//resultMatch= cv::matchShapes(grayImg, temp, cv::CONTOURS_MATCH_I1, 0.0);
-	//
-	//	resultMatch= cv::matchShapes(imageContours, m_contours[i], cv::CONTOURS_MATCH_I1, 0.0);
-	//	std::cout << i << ": " << resultMatch << std::endl;
-	//	if (resultMatch <= lowestResult)
-	//	{
-	//		lowestResult = resultMatch;
-	//		lowestRenderID = i;
-	//	}
-	//}
-
-
 	std::cout << "Render with ID: " << lowestRenderID << " is the best fit with value: " << lowestResult << " to contour " << lowestContourID << std::endl;
 
 	cv::Mat drawing = cv::Mat::zeros(image.size().height, image.size().width, CV_8UC3);
@@ -150,4 +127,6 @@ int ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	return lowestRenderID;
 
 }
+
+
 

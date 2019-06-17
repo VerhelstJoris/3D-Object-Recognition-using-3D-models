@@ -33,12 +33,14 @@ public:
 	bool Initialize(std::vector<cv::Mat>& renders);
 
 	double GetAverageAreaRenders() { return m_averageArea; };
+	double GetAverageSquarenessRenders() { return m_averageSquareness; };
 
 	cv::Mat ContourToMat(int contourID);
 
 
 private:
 	void GenerateContours();
+
 
 	std::vector<cv::Mat> m_renders;
 	std::vector<std::vector<cv::Point>> m_contours;
@@ -48,6 +50,7 @@ private:
 	int m_width, m_height;
 
 	double m_averageArea;
+	double m_averageSquareness;
 
 };
 

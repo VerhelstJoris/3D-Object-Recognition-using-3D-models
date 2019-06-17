@@ -58,29 +58,28 @@ int main(void)
 	//retrieve the vector of cv::Mat screenshots from the renderer
 	matchingObject->Initialize(systemObject->GetScreenRenders());
 	
-	// Shutdown and release the OPENGL object.
-	systemObject->Shutdown();
-	delete systemObject;
-	systemObject = 0;
-
 
 	//CONTOUR MATCHING TEST
-	//cv::Mat testImg = cv::imread("../Resources/Test/Capture.jpg");
-	//
-	//int testResult =	matchingObject->MatchImgAgainstContours(testImg);
-	//
+	//cv::Mat testImg = cv::imread("../Resources/Test/suzanne2.jpg");
+	//int testResult = matchingObject->MatchImgAgainstContours(testImg);
 	//imshow("ContourFit", matchingObject->ContourToMat(testResult));
+	////imshow("Contour", drawing);
+	//imshow("TestImage", testImg);
 
+	//TESTING
+	cv::Mat testImg = cv::imread("../Resources/Test/suzanne2.jpg");
+	
+	systemObject->SwitchToDisplayMode(testImg);
+	systemObject->Run();
 
-	cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
 
 
 	std::vector<std::vector<cv::Point>> contourTestImg;
 	std::vector<cv::Vec4i> contourHierarchy;
 	
 	std::cout << matchingObject->GetAverageAreaRenders() << std::endl;
-
-	ImageOperations::ExtractContourFromImage(testImg, contourTestImg, contourHierarchy, matchingObject->GetAverageAreaRenders());
+	
+	ImageOperations::ExtractContourFromImage(testImg, contourTestImg, contourHierarchy, matchingObject->GetAverageAreaRenders(), matchingObject->GetAverageSquarenessRenders());
 	
 	//DRAW CONTOURS
 	auto size = testImg.size();
@@ -97,29 +96,31 @@ int main(void)
 		//if (contourHierarchy[i][2] != -1) 
 		{
 			// random colour
-	
 			color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
 			drawContours(drawing, contourTestImg, i, color, 0.5, 8, hierarchy, 0, cv::Point());
 		}
 	
-		//if (contourHierarchy[i][3] != -1)
-		//{
-		//	color = cv::Scalar(255, 0, 0);
-		//}
-		//else
-		//{
-		//	color = cv::Scalar(0, 255, 0);
-		//}
 	}
-
+	
 	imshow("Contour", drawing);
 	imshow("TestImage", testImg);
 	//int id = matchingObject->MatchImgAgainstContours(testImg);
 	//imshow("TestContours", matchingObject->ContourToMat(id));
-
 	
+	
+
+
+
+
+
 	cv::waitKey();
 	cv::destroyAllWindows();
+
+	// Shutdown and release the OPENGL object.
+	systemObject->Shutdown();
+	delete systemObject;
+	systemObject = 0;
+
 
 	return 0;
 }
