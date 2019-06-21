@@ -18,16 +18,6 @@
 
 int main(void)
 {
-
-	//Assimp::Importer Importer;
-	//
-	//const aiScene* pScene = Importer.ReadFile("../Resources/Stopsign/StopSign.obj", aiProcess_CalcTangentSpace |
-	//	aiProcess_Triangulate |
-	//	aiProcess_JoinIdenticalVertices |
-	//	aiProcess_SortByPType);
-	//
-	//std::cout << "IMPORTED BOI" << std::endl;
-
 	//OPENGL object renderer
 	OGLRenderer* ContourRendererObject, *DisplayRendererObject;
 	ContourMatcher* matchingObject;
@@ -60,9 +50,8 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-
-	cv::Mat testImg = cv::imread("../Resources/Test/Capture.jpg");
-
+	cv::Mat testImg = cv::imread("../Resources/Test/Capture2.jpg");
+	imshow("TestImage", testImg);
 
 	// Shutdown and release the OPENGL object.
 	ContourRendererObject->Shutdown();
@@ -73,7 +62,7 @@ int main(void)
 	int testResult = matchingObject->MatchImgAgainstContours(testImg);
 	imshow("ContourFit", matchingObject->ContourToMat(testResult));
 	//imshow("Contour", drawing);
-	imshow("TestImage", testImg);
+	//imshow("TestImage", testImg);
 
 	//TESTING
 	//create new object instead of reusing because resizing the window at runtime isn't easy

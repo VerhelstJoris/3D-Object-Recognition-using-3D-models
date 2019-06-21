@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 
+
 namespace OGLHelperFunctions //optional, just for clarity
 {
 
