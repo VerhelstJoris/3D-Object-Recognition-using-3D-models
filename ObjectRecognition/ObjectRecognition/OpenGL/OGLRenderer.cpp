@@ -1,4 +1,4 @@
-#include "OGLRenderer.h"
+﻿#include "OGLRenderer.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -107,6 +107,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	glGenBuffers(1, &m_uvBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
+
 #pragma endregion
 
 	#pragma region POST-PROCESSING
@@ -134,6 +135,8 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	// Set renderTex as our colour attachement #0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_renderTex, 0);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	// Set the list of draw buffers.
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
@@ -171,9 +174,6 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	#pragma endregion
 
-
-	//GENERAL
-
 	return true;
 }
 
@@ -209,19 +209,29 @@ void OGLRenderer::Run()
 
 	#pragma region RENDERING
 
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(0, 0, 0, 1);
+		
+		glClearTexImage(m_renderTex, 0, GL_BGRA, GL_UNSIGNED_BYTE, &m_blackColor);
+
+
 		//RENDERING
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
-			glViewport(0, 0, m_WindowWidth, m_WindowHeight); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			glViewport(0, 0, m_WindowWidth, m_WindowHeight);
 		}
 		else
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
-		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	
+
+	
 		// Use our shader
 		glUseProgram(m_programID);
 
@@ -295,8 +305,9 @@ void OGLRenderer::Run()
 	#pragma endregion 
 
 	#pragma region POST-PROCESSING
-
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, m_WindowWidth, m_WindowHeight);
 
 		// Use our shader
 		glUseProgram(m_quadProgramID);
@@ -335,7 +346,8 @@ void OGLRenderer::Run()
 
 	#pragma endregion
 
-		// Swap buffers
+		glFlush();
+
 		glfwSwapBuffers(m_window);
 
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
@@ -348,7 +360,6 @@ void OGLRenderer::Run()
 			else
 			{
 				std::cout << "ScreenShots Taken" << std::endl;
-				//glfwSetWindowShouldClose(m_window, true);
 				keepRunning = false;
 			}
 		}
@@ -408,11 +419,15 @@ void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
 	}
 	else {
 
-		std::cout << image.depth() << std::endl;
-		std::cout << image.type() << std::endl;
-		std::cout << "Channels " << image.channels() << std::endl << std::endl;
-		
+	
 		cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
+
+
+		//use fast 4-byte alignment (default anyway) if possible
+		glPixelStorei(GL_UNPACK_ALIGNMENT, (image.step & 3) ? 1 : 4);
+
+		//set length of one complete row in data (doesn't need to equal image.cols)
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.step / image.elemSize());
 
 
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -437,8 +452,6 @@ void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
 			GL_UNSIGNED_BYTE,    // Image data type
 			image.ptr());        // The actual image data itself
 	}
-
-	std::cout << "Finished Converting Image" << std::endl;
 }
 
 void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
@@ -446,15 +459,7 @@ void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
 	std::cout << "Switching Display Modes" << std::endl;
 	m_mode = RENDERER_MODE::DISPLAY;
 
+	cv::flip(imageToConvert, imageToConvert,0);
 
-	cv::Mat flipped;
-	cv::flip(imageToConvert, flipped,0);
-
-	//use fast 4-byte alignment (default anyway) if possible
-	glPixelStorei(GL_UNPACK_ALIGNMENT, (imageToConvert.step & 3) ? 1 : 4);
-
-	//set length of one complete row in data (doesn't need to equal image.cols)
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, imageToConvert.step / imageToConvert.elemSize());
-
-	ConvertMatToTexture(flipped, m_MatTex);
+	ConvertMatToTexture(imageToConvert, m_MatTex);
 }

@@ -51,9 +51,9 @@ int main(void)
 	//OPENCV
 	//==================================================================
 	cv::Mat testImg = cv::imread("../Resources/Test/Capture2.jpg");
-	imshow("TestImage", testImg);
+	//imshow("TestImage", testImg);
 
-	// Shutdown and release the OPENGL object.
+	// Shutdown and release the RENDERER object.
 	ContourRendererObject->Shutdown();
 	delete ContourRendererObject;
 	ContourRendererObject = 0;
@@ -116,8 +116,10 @@ int main(void)
 	cv::waitKey();
 	cv::destroyAllWindows();
 
-
-
+	// Shutdown and release the DISPLAY object.
+	DisplayRendererObject->Shutdown();
+	delete DisplayRendererObject;
+	DisplayRendererObject = 0;
 
 	return 0;
 }

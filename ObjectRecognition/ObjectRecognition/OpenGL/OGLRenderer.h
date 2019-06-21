@@ -56,6 +56,7 @@ private:
 	float m_angleDifferenceDegrees = 6.0f;
 	int m_amountOfRenders = 0;
 
+	unsigned int m_blackColor[4] = { 0, 0, 0, 1 };		//GLUINT
 	RENDERER_MODE m_mode = RENDERER_MODE::GENERATERENDERS;
 
 	//OPENCV
