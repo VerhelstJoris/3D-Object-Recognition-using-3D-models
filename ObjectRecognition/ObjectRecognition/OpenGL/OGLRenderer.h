@@ -46,12 +46,9 @@ private:
 	struct GLFWwindow* m_window;
 
 	Mesh* m_model;
-	unsigned int m_vertexBuffer, m_uvBuffer, m_vertexArrayID, m_programID, m_matrixID, m_viewMatrixID, m_modelMatrixID; // GLUINT
+	unsigned int m_vertexArrayID, m_programID, m_matrixID, m_viewMatrixID, m_modelMatrixID; // GLUINT
 	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT POSTPROCESSING
 
-	std::vector<glm::vec3> m_vertices;
-	std::vector<glm::vec2> m_uvs;
-	std::vector<glm::vec3> m_normals;	//not used rn
 
 	//orientation of the object
 	glm::vec3 m_Orientation = glm::vec3(0.0f, 1.0f, 0.0f);;

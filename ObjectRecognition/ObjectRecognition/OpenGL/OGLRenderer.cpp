@@ -58,6 +58,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	}
 	glfwMakeContextCurrent(m_window);
 
+
 	//sticky keys
 	glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GLFW_TRUE);
 
@@ -75,15 +76,12 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	//glDepthFunc(GL_ALWAYS);
-
-	glDepthRange(-1.0f, 1.0f);
+	//glDepthRange(-1.0f, 1.0f);
 
 	// Cull triangles which normal is not towards the camera
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 
 	#pragma region RENDERING
-
 
 	glGenVertexArrays(1, &m_vertexArrayID);
 	glBindVertexArray(m_vertexArrayID);
@@ -96,19 +94,11 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	m_viewMatrixID = glGetUniformLocation(m_programID, "V");
 	m_modelMatrixID = glGetUniformLocation(m_programID, "M");
 
-	// Read .obj file
-	//TO-DO: REPLACE WITH MORE ROBUST FILE LOADER
-	bool res = OGLHelperFunctions::loadOBJ(modelFilePath, m_vertices, m_uvs, m_normals);
+	//MESH
+	m_model = new Mesh();
+	m_model->LoadMesh("../Resources/Test/Suzanne.obj");
 
-	//vertexbuffer for our .obj model
-	glGenBuffers(1, &m_vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
 
-	//uvbuffer holding the uv coordinates of our .obj
-	glGenBuffers(1, &m_uvBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
-	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
 
 #pragma endregion
 
@@ -176,18 +166,13 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	#pragma endregion
 
-	//MESH
-	m_model = new Mesh();
-	m_model->LoadMesh("../Resources/Test/Suzanne.obj");
-
+	
 	return true;
 }
 
 void OGLRenderer::Shutdown()
 {
 	// Cleanup VBO
-	glDeleteBuffers(1, &m_vertexBuffer);
-	glDeleteBuffers(1, &m_uvBuffer);
 	glDeleteVertexArrays(1, &m_vertexArrayID);
 	glDeleteProgram(m_programID);
 
@@ -197,6 +182,7 @@ void OGLRenderer::Shutdown()
 	glDeleteVertexArrays(1, &m_vertexArrayID);
 
 	glDeleteTextures(1, &m_MatTex);
+
 
 	glfwTerminate();
 }
@@ -221,28 +207,34 @@ void OGLRenderer::Run()
 		
 		glClearTexImage(m_renderTex, 0, GL_BGRA, GL_UNSIGNED_BYTE, &m_blackColor);
 	
-	
 		//RENDERING
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
 			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-			glViewport(0, 0, m_WindowWidth, m_WindowHeight);
+			glUseProgram(m_programID);
+
 		}
 		else
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			glUseProgram(m_programID);
 		}
 	
-		// Use our shader
-		glUseProgram(m_programID);
-	
+		glViewport(0, 0, m_WindowWidth, m_WindowHeight);
+		glMatrixMode(GL_PROJECTION);
+		float aspect = (float)m_WindowWidth / (float)m_WindowHeight;
+		glOrtho(-aspect, aspect, -1, 1, -1, 1);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
 		#pragma region MATRICES
 	
-		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)m_WindowWidth / (float)m_WindowHeight, 0.1f, 100.0f);
 		glm::mat4 ViewMatrix = glm::lookAt(
-			glm::vec3(0, 0, 7), // Camera is here, in World Space
+			glm::vec3(0, 0, 7.5), // Camera is here, in World Space
 			glm::vec3(0, 0, 0), // and looks at the origin
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
@@ -259,7 +251,7 @@ void OGLRenderer::Run()
 		// Build the model matrix
 		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
-		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0f, 1.0f, 1.0f));			//scale (1,1,1)
+		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0,1.0,1.0));			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
 	
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
@@ -273,40 +265,9 @@ void OGLRenderer::Run()
 	
 		#pragma endregion
 	
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-		glVertexAttribPointer(
-			0,                  // attribute
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
-	
-		//2nd attribute buffer : UVs
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
-		glVertexAttribPointer(
-			1,                                // attribute
-			2,                                // size
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-		);
-	
-		glBindBuffer(0,m_bufferName);
-	
-		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_vertices.size());
-	
+
 		m_model->Render();
 
-	
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
 		
 	#pragma endregion 
 	

@@ -3,41 +3,47 @@
 
 #include <iostream>
 
+
+//MESHENTRY
+//================================
 Mesh::MeshEntry::MeshEntry()
 {
-    VB = 0;
-    IB = 0;
-    NumIndices  = 0;
-    MaterialIndex = 0;
+    vertexBuffer = 0;
+    indexBuffer = 0;
+    numIndices  = 0;
+    matIndex = 0;
 };
 
 Mesh::MeshEntry::~MeshEntry()
 {
-    if (VB != 0)
+    if (vertexBuffer != 0)
     {
-        glDeleteBuffers(1, &VB);
+        glDeleteBuffers(1, &vertexBuffer);
     }
 
-    if (IB != 0)
+    if (indexBuffer != 0)
     {
-        glDeleteBuffers(1, &IB);
+        glDeleteBuffers(1, &indexBuffer);
     }
 }
 
 void Mesh::MeshEntry::Init(const std::vector<Vertex>& Vertices,
                           const std::vector<unsigned int>& Indices)
 {
-    NumIndices = Indices.size();
+    numIndices = Indices.size();
 
-    glGenBuffers(1, &VB);
-  	glBindBuffer(GL_ARRAY_BUFFER, VB);
+    glGenBuffers(1, &vertexBuffer);
+  	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_STATIC_DRAW);
 
-    glGenBuffers(1, &IB);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IB);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * NumIndices, &Indices[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * numIndices, &Indices[0], GL_STATIC_DRAW);
 }
 
+
+//MESH
+//================================================
 Mesh::Mesh()
 {
 }
@@ -62,7 +68,7 @@ bool Mesh::LoadMesh(const std::string& Filename)
     // Release the previously loaded mesh (if it exists)
     Clear();
     
-    bool Ret = false;
+    bool result = false;
     Assimp::Importer Importer;
 
     const aiScene* pScene = Importer.ReadFile(Filename.c_str(), aiProcess_CalcTangentSpace |
@@ -70,11 +76,9 @@ bool Mesh::LoadMesh(const std::string& Filename)
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_SortByPType);
     
-	std::cout << "Succesfully used the importer" << std::endl;
-
 
     if (pScene) {
-        Ret = InitFromScene(pScene, Filename);
+        result = InitFromScene(pScene, Filename);
     }
     else {
         printf("Error parsing '%s': '%s'\n", Filename.c_str(), Importer.GetErrorString());
@@ -82,21 +86,19 @@ bool Mesh::LoadMesh(const std::string& Filename)
 
 	std::cout << "Succesfully Loaded the mesh" << std::endl;
 
-    return Ret;
+    return result;
 }
 
 bool Mesh::InitFromScene(const aiScene* pScene, const std::string& Filename)
 {  
-    m_Entries.resize(pScene->mNumMeshes);
+    m_entries.resize(pScene->mNumMeshes);
     //m_Textures.resize(pScene->mNumMaterials);
 
     // Initialize the meshes in the scene one by one
-    for (unsigned int i = 0 ; i < m_Entries.size() ; i++) {
+    for (unsigned int i = 0 ; i < m_entries.size() ; i++) {
         const aiMesh* paiMesh = pScene->mMeshes[i];
         InitMesh(i, paiMesh);
     }
-
-	std::cout << "Succesfully initialized the mesh" << std::endl;
 
 
     return InitMaterials(pScene, Filename);
@@ -104,7 +106,7 @@ bool Mesh::InitFromScene(const aiScene* pScene, const std::string& Filename)
 
 void Mesh::InitMesh(unsigned int Index, const aiMesh* paiMesh)
 {
-    m_Entries[Index].MaterialIndex = paiMesh->mMaterialIndex;
+    m_entries[Index].matIndex = paiMesh->mMaterialIndex;
     
     std::vector<Vertex> Vertices;
     std::vector<unsigned int> Indices;
@@ -131,7 +133,7 @@ void Mesh::InitMesh(unsigned int Index, const aiMesh* paiMesh)
         Indices.push_back(Face.mIndices[2]);
     }
 
-    m_Entries[Index].Init(Vertices, Indices);
+    m_entries[Index].Init(Vertices, Indices);
 }
 
 bool Mesh::InitMaterials(const aiScene* pScene, const std::string& Filename)
@@ -169,7 +171,7 @@ bool Mesh::InitMaterials(const aiScene* pScene, const std::string& Filename)
                 //    printf("Error loading texture '%s'\n", FullPath.c_str());
                 //    delete m_Textures[i];
                 //    m_Textures[i] = NULL;
-                //    Ret = false;
+                //    result = false;
                 //}
                 //else {
                 //    printf("Loaded texture '%s'\n", FullPath.c_str());
@@ -181,7 +183,7 @@ bool Mesh::InitMaterials(const aiScene* pScene, const std::string& Filename)
         //if (!m_Textures[i]) {
         //    m_Textures[i] = new Texture(GL_TEXTURE_2D, "../Content/white.png");
 		//
-        //    Ret = m_Textures[i]->Load();
+        //    result = m_Textures[i]->Load();
         //}
     }
 
@@ -194,21 +196,21 @@ void Mesh::Render()
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    for (unsigned int i = 0 ; i < m_Entries.size() ; i++) {
-        glBindBuffer(GL_ARRAY_BUFFER, m_Entries[i].VB);
+    for (unsigned int i = 0 ; i < m_entries.size() ; i++) {
+        glBindBuffer(GL_ARRAY_BUFFER, m_entries[i].vertexBuffer);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Entries[i].IB);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_entries[i].indexBuffer);
 
-        const unsigned int MaterialIndex = m_Entries[i].MaterialIndex;
+        const unsigned int matIndex = m_entries[i].matIndex;
 
-        //if (MaterialIndex < m_Textures.size() && m_Textures[MaterialIndex]) {
-        //    m_Textures[MaterialIndex]->Bind(GL_TEXTURE0);
+        //if (matIndex < m_Textures.size() && m_Textures[matIndex]) {
+        //    m_Textures[matIndex]->Bind(GL_TEXTURE0);
         //}
 
-        glDrawElements(GL_TRIANGLES, m_Entries[i].NumIndices, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, m_entries[i].numIndices, GL_UNSIGNED_INT, 0);
     }
 
     glDisableVertexAttribArray(0);

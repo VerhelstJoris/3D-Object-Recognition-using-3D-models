@@ -49,16 +49,16 @@ private:
 
         ~MeshEntry();
 
-        void Init(const std::vector<Vertex>& Vertices,
-                  const std::vector<unsigned int>& Indices);
+        void Init(const std::vector<Vertex>& vertices,
+                  const std::vector<unsigned int>& indices);
 
-        GLuint VB;
-        GLuint IB;
-        unsigned int NumIndices;
-        unsigned int MaterialIndex;
+        GLuint vertexBuffer;
+        GLuint indexBuffer;
+        unsigned int numIndices;
+        unsigned int matIndex;
     };
 
-    std::vector<MeshEntry> m_Entries;
+    std::vector<MeshEntry> m_entries;
     //std::vector<Texture*> m_Textures;
 };
 
