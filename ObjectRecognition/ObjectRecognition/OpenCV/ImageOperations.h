@@ -4,23 +4,30 @@
 
 namespace ImageOperations //optional, just for clarity
 {
-	//the higher the divisionValue, the less color variation there will be in the image
-	static void colorReduce(cv::Mat& image, int div = 64)
+
+	// quantize the image to numBits 
+	static cv::Mat ColorReduce(const cv::Mat& inImage, int numBits)
 	{
-		int nl = image.rows;                    // number of lines
-		int nc = image.cols * image.channels(); // number of elements per line
+		cv::Mat retImage = inImage.clone();
 
-		for (int j = 0; j < nl; j++)
+		uchar maskBit = 0xFF;
+
+		// keep numBits as 1 and (8 - numBits) would be all 0 towards the right
+		maskBit = maskBit << (8 - numBits);
+
+		for (int j = 0; j < retImage.rows; j++)
 		{
-			// get the address of row j
-			uchar* data = image.ptr<uchar>(j);
-
-			for (int i = 0; i < nc; i++)
+			for (int i = 0; i < retImage.cols; i++)
 			{
-				// process each pixel
-				data[i] = data[i] / div * div + div / 2;
+				cv::Vec3b valVec = retImage.at<cv::Vec3b>(j, i);
+				valVec[0] = valVec[0] & maskBit;
+				valVec[1] = valVec[1] & maskBit;
+				valVec[2] = valVec[2] & maskBit;
+				retImage.at<cv::Vec3b>(j, i) = valVec;
 			}
 		}
+		
+		return retImage;
 	}
 	
 	//Increase the contrast of the image
@@ -75,18 +82,18 @@ namespace ImageOperations //optional, just for clarity
 	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult, double contourArea, double contourShapeFactor, int kernelSize = 50,int thresholdValue = 50)
 	{
 		cv::Mat temp1 , temp2;
-
-
+		temp1 = image;
 		cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
-		colorReduce(temp1,64);
-		cv::cvtColor(temp1, temp2, cv::COLOR_BGR2GRAY);	// image to grayscale
-		cv::blur(temp2, temp1, cv::Size(3, 3));
-		
-		cv::Canny(temp1, temp2, 0, 100);
-		
+		temp2 = ColorReduce(temp1, 2);
+
+		cv::cvtColor(temp2, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
+		cv::blur(temp1, temp2, cv::Size(3,3));
+
+		cv::Canny(temp2, temp1, 0, 100);
+
 		std::vector<std::vector<cv::Point>> contours;
 
-		cv::findContours(temp2, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+		cv::findContours(temp1, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
 		//remove unnecessary contours
 		for (size_t i = 0; i < contours.size();)

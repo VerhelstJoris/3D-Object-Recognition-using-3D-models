@@ -9,6 +9,8 @@
 namespace cv{class Mat;}	//forward declaration
 //namespace glm { struct vec2; struct vec3; }
 
+class Mesh;
+
 enum RENDERER_MODE
 {
 	GENERATERENDERS,
@@ -42,9 +44,10 @@ private:
 
 	//OPENGL
 	struct GLFWwindow* m_window;
+
+	Mesh* m_model;
 	unsigned int m_vertexBuffer, m_uvBuffer, m_vertexArrayID, m_programID, m_matrixID, m_viewMatrixID, m_modelMatrixID; // GLUINT
-	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT
-	std::vector<unsigned int> m_indexBuffer;
+	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT POSTPROCESSING
 
 	std::vector<glm::vec3> m_vertices;
 	std::vector<glm::vec2> m_uvs;

@@ -16,6 +16,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "mesh.h"
+
 
 OGLRenderer::OGLRenderer()
 {
@@ -174,6 +176,10 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	#pragma endregion
 
+	//MESH
+	m_model = new Mesh();
+	m_model->LoadMesh("../Resources/Test/Suzanne.obj");
+
 	return true;
 }
 
@@ -208,42 +214,39 @@ void OGLRenderer::Run()
 	
 
 	#pragma region RENDERING
-
+	
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0, 0, 0, 1);
 		
 		glClearTexImage(m_renderTex, 0, GL_BGRA, GL_UNSIGNED_BYTE, &m_blackColor);
-
-
+	
+	
 		//RENDERING
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, m_bufferName);
 			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	
 			glViewport(0, 0, m_WindowWidth, m_WindowHeight);
 		}
 		else
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
-
-	
-
 	
 		// Use our shader
 		glUseProgram(m_programID);
-
+	
 		#pragma region MATRICES
-
+	
 		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 		glm::mat4 ViewMatrix = glm::lookAt(
 			glm::vec3(0, 0, 7), // Camera is here, in World Space
 			glm::vec3(0, 0, 0), // and looks at the origin
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
-
+	
 		//MODEL MATRICES
 	//==============================================
 	//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
@@ -252,24 +255,24 @@ void OGLRenderer::Run()
 			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
 			//std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
 		}
-
+	
 		// Build the model matrix
 		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
 		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0f, 1.0f, 1.0f));			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
-
+	
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-
-
+	
+	
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
 		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
-
+	
 		#pragma endregion
-
+	
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -281,7 +284,7 @@ void OGLRenderer::Run()
 			0,                  // stride
 			(void*)0            // array buffer offset
 		);
-
+	
 		//2nd attribute buffer : UVs
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, m_uvBuffer);
@@ -293,28 +296,31 @@ void OGLRenderer::Run()
 			0,                                // stride
 			(void*)0                          // array buffer offset
 		);
-
+	
 		glBindBuffer(0,m_bufferName);
-
+	
 		// Draw the triangle !
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_vertices.size());
+	
+		m_model->Render();
 
+	
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		
 	#pragma endregion 
-
+	
 	#pragma region POST-PROCESSING
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, m_WindowWidth, m_WindowHeight);
-
+	
 		// Use our shader
 		glUseProgram(m_quadProgramID);
-
+	
 		// Bind our texture in Texture Unit 0
 		glActiveTexture(GL_TEXTURE0);
-
+	
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
 			glBindTexture(GL_TEXTURE_2D, m_renderTex);
@@ -325,7 +331,7 @@ void OGLRenderer::Run()
 		}
 		// Set our texture sampler to use Texture Unit 0
 		glUniform1i(m_texID, 0);
-
+	
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, m_quadVertexBuffer);
@@ -337,16 +343,15 @@ void OGLRenderer::Run()
 			0,                  // stride
 			(void*)0            // array buffer offset
 		);
-
-
+	
+	
 		// Draw the triangles !
 		glDrawArrays(GL_TRIANGLES, 0, 6); // 2*3 indices starting at 0 -> 2 triangles
-
+	
 		glDisableVertexAttribArray(0);
-
+	
 	#pragma endregion
 
-		glFlush();
 
 		glfwSwapBuffers(m_window);
 
@@ -419,9 +424,7 @@ void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
 	}
 	else {
 
-	
 		cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
-
 
 		//use fast 4-byte alignment (default anyway) if possible
 		glPixelStorei(GL_UNPACK_ALIGNMENT, (image.step & 3) ? 1 : 4);
@@ -430,7 +433,7 @@ void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.step / image.elemSize());
 
 
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		//glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glGenTextures(1, &imageTexture);
 		glBindTexture(GL_TEXTURE_2D, imageTexture);
 
@@ -443,14 +446,14 @@ void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
 
 
 		glTexImage2D(GL_TEXTURE_2D,         // Type of texture
-			0,                   // Pyramid level (for mip-mapping) - 0 is the top level
-			GL_RGB,              // Internal colour format to convert to
-			image.cols,          // Image width 
-			image.rows,          // Image height
-			0,                   // Border width in pixels (can either be 1 or 0)
-			GL_RGB,              // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
-			GL_UNSIGNED_BYTE,    // Image data type
-			image.ptr());        // The actual image data itself
+			0,								// Pyramid level (for mip-mapping) - 0 is the top level
+			GL_RGB,							// Internal colour format to convert to
+			image.cols,						// Image width 
+			image.rows,						// Image height
+			0,								// Border width in pixels (can either be 1 or 0)
+			GL_RGB,							// Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
+			GL_UNSIGNED_BYTE,				// Image data type
+			image.ptr());					// The actual image data itself
 	}
 }
 

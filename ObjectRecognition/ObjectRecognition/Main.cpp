@@ -12,9 +12,9 @@
 #include "OpenCV/ImageOperations.h"
 
 //assimp test
-//#include <assimp/scene.h>
-//#include <assimp/Importer.hpp>
-//#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
 
 int main(void)
 {
@@ -50,7 +50,7 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	cv::Mat testImg = cv::imread("../Resources/Test/Capture2.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
 	//imshow("TestImage", testImg);
 
 	// Shutdown and release the RENDERER object.
@@ -61,9 +61,7 @@ int main(void)
 	//CONTOUR MATCHING TEST
 	int testResult = matchingObject->MatchImgAgainstContours(testImg);
 	imshow("ContourFit", matchingObject->ContourToMat(testResult));
-	//imshow("Contour", drawing);
-	//imshow("TestImage", testImg);
-
+	
 	//TESTING
 	//create new object instead of reusing because resizing the window at runtime isn't easy
 	DisplayRendererObject = new OGLRenderer;
@@ -79,6 +77,8 @@ int main(void)
 		DisplayRendererObject->Run();
 	}
 
+	////TESTING
+	//=======================
 	//std::vector<std::vector<cv::Point>> contourTestImg;
 	//std::vector<cv::Vec4i> contourHierarchy;
 	//
@@ -108,11 +108,11 @@ int main(void)
 	//}
 	//
 	//imshow("Contour", drawing);
-	//imshow("TestImage", testImg);
-	//int id = matchingObject->MatchImgAgainstContours(testImg);
-	//imshow("TestContours", matchingObject->ContourToMat(id));
 	
 
+
+	//SHUTDOWN
+	//====================
 	cv::waitKey();
 	cv::destroyAllWindows();
 

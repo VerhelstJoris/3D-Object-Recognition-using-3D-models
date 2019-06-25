@@ -97,7 +97,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\opencv\build\x64\vc15\lib;$(SolutionDir)Dependencies\GLFW;$(SolutionDir)Dependencies\OpenCV;$(SolutionDir)Dependencies\GLEW;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\Assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib;assimp-vc140-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -114,7 +114,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\opencv\build\x64\vc15\lib;$(SolutionDir)Dependencies\GLFW;$(SolutionDir)Dependencies\OpenCV;$(SolutionDir)Dependencies\GLEW;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\Assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib;assimp-vc140-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -135,7 +135,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\opencv\build\x64\vc15\lib;$(SolutionDir)Dependencies\GLFW;$(SolutionDir)Dependencies\OpenCV;$(SolutionDir)Dependencies\GLEW;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\Assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib;assimp-vc140-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,18 +156,20 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\opencv\build\x64\vc15\lib;$(SolutionDir)Dependencies\GLFW;$(SolutionDir)Dependencies\OpenCV;$(SolutionDir)Dependencies\GLEW;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\Assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib;opencv_world410d.lib;glew32.lib;assimp-vc140-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="OpenCV\ContourMatcher.cpp" />
     <ClCompile Include="OpenCV\DisplayWindow.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="OpenGL\mesh.cpp" />
     <ClCompile Include="OpenGL\OGLRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCV\ContourMatcher.h" />
     <ClInclude Include="OpenCV\DisplayWindow.h" />
+    <ClInclude Include="OpenGL\mesh.h" />
     <ClInclude Include="OpenGL\OGLHelperFunctions.h" />
     <ClInclude Include="OpenCV\ImageOperations.h" />
     <ClInclude Include="OpenGL\OGLRenderer.h" />
