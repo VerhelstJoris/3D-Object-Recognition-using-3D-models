@@ -50,7 +50,7 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/stopsign4.jpg");
 	//imshow("TestImage", testImg);
 
 	// Shutdown and release the RENDERER object.

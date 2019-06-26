@@ -13,6 +13,7 @@ class Mesh;
 
 enum RENDERER_MODE
 {
+	CAMERAMOVE,
 	GENERATERENDERS,
 	DISPLAY
 };
@@ -49,6 +50,8 @@ private:
 	unsigned int m_vertexArrayID, m_programID, m_matrixID, m_viewMatrixID, m_modelMatrixID; // GLUINT
 	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT POSTPROCESSING
 
+	//camera position
+	float m_cameraPosX=0.0f, m_cameraPosY=0.0f, m_cameraPosZ=7.0f;
 
 	//orientation of the object
 	glm::vec3 m_Orientation = glm::vec3(0.0f, 1.0f, 0.0f);;
@@ -57,7 +60,7 @@ private:
 	int m_amountOfRenders = 0;
 
 	unsigned int m_blackColor[4] = { 0, 0, 0, 1 };		//GLUINT
-	RENDERER_MODE m_mode = RENDERER_MODE::GENERATERENDERS;
+	RENDERER_MODE m_mode = RENDERER_MODE::CAMERAMOVE;
 
 	//OPENCV
 	std::vector<cv::Mat> m_renders;

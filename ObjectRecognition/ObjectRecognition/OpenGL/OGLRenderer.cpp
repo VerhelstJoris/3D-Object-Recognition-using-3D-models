@@ -96,7 +96,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	//MESH
 	m_model = new Mesh();
-	m_model->LoadMesh("../Resources/Test/Suzanne.obj");
+	m_model->LoadMesh("../Resources/Stopsign/stopsign.obj");
 
 
 
@@ -166,7 +166,13 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	#pragma endregion
 
-	
+	std::cout << std::endl << std::endl;
+	std::cout << "========================================================" << std::endl;
+	std::cout << "move the camera around until the object is full in screen" << std::endl;
+	std::cout << "WASD to move forward/back and left/right" << std::endl;
+	std::cout << "SPACE and Left CTRL to move up/down" << std::endl;
+	std::cout << "ENTER to confirm and start the rendering" << std::endl;
+
 	return true;
 }
 
@@ -195,8 +201,10 @@ void OGLRenderer::Run()
 	//while (!glfwWindowShouldClose(m_window))
 	{
 		//INPUT
-		ProcessUserInput();
-
+		if (m_mode == RENDERER_MODE::CAMERAMOVE)
+		{
+			ProcessUserInput();
+		}
 	
 
 	#pragma region RENDERING
@@ -234,20 +242,23 @@ void OGLRenderer::Run()
 	
 		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)m_WindowWidth / (float)m_WindowHeight, 0.1f, 100.0f);
 		glm::mat4 ViewMatrix = glm::lookAt(
-			glm::vec3(0, 0, 7.5), // Camera is here, in World Space
-			glm::vec3(0, 0, 0), // and looks at the origin
+			glm::vec3(m_cameraPosX, m_cameraPosY, m_cameraPosZ), // Camera is here, in World Space
+			//glm::vec3(0, 0, 0), // and looks at the origin
+			glm::vec3(m_cameraPosX, m_cameraPosY, m_cameraPosZ-10.0f), // and looks forward
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
 	
 		//MODEL MATRICES
 	//==============================================
 	//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
-		if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
-			//std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
+			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+			{
+				m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
+				//std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
+			}
 		}
-	
 		// Build the model matrix
 		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
@@ -325,7 +336,7 @@ void OGLRenderer::Run()
 			}
 			else
 			{
-				std::cout << "ScreenShots Taken" << std::endl;
+				std::cout << "RENDERS GENERATED" << std::endl;
 				keepRunning = false;
 			}
 		}
@@ -342,15 +353,44 @@ void OGLRenderer::ProcessUserInput()
 	}
 
 
+	//move UP/DOWN
 	if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
-		//if (ScreenShot("test.tga", 800, 600) == false)
-		//{
-		//	std::cout << "Failed making a screenshot" << std::endl;
-		//}
-
-		//GetMatFromOpenGL(m_bufferName);
+		m_cameraPosY += 0.1f;
 	}
+	else if (glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	{
+		m_cameraPosY -= 0.1f;
+	}
+
+	//MOVE FORWARD/BACK
+	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		m_cameraPosZ -= 0.1f;
+	}
+	else if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		m_cameraPosZ += 0.1f;
+	}
+
+	//MOVE LEFT/RIGHT
+	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		m_cameraPosX -= 0.1f;
+	}
+	else if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		m_cameraPosX += 0.1f;
+	}
+
+	//CONFIRM AND START RENDERING
+	if (glfwGetKey(m_window, GLFW_KEY_ENTER) == GLFW_PRESS)
+	{
+		std::cout << "CONFIRMED" << std::endl;
+		m_mode = RENDERER_MODE::GENERATERENDERS;
+	}
+
+
 
 	/* Poll for and process events */
 	glfwPollEvents();
