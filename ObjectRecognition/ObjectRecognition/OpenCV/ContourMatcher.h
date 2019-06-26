@@ -19,6 +19,7 @@ namespace cv
 	//typedef Size2i Size;
 }	
 
+typedef struct RenderStruct;
 
 
 class ContourMatcher
@@ -30,7 +31,7 @@ public:
 public:
 	int MatchImgAgainstContours(cv::Mat image);
 
-	bool Initialize(std::vector<cv::Mat>& renders);
+	bool Initialize(std::vector<RenderStruct>& renders);
 
 	double GetAverageAreaRenders() { return m_averageArea; };
 	double GetAverageSquarenessRenders() { return m_averageSquareness; };
@@ -42,7 +43,7 @@ private:
 	void GenerateContours();
 
 
-	std::vector<cv::Mat> m_renders;
+	std::vector<RenderStruct> m_renders;
 	std::vector<std::vector<cv::Point>> m_contours;
 
 	//CAN'T USE UNTIL FWD DECLARATION WORKS

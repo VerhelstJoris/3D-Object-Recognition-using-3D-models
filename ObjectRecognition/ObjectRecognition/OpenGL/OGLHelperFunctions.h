@@ -107,6 +107,7 @@ namespace OGLHelperFunctions //optional, just for clarity
 		return ProgramID;
 	}
 
+	//DEPRICATED
 	static bool loadOBJ(
 		const char * path,
 		std::vector<glm::vec3> & out_vertices,

@@ -35,55 +35,44 @@ int main(void)
 	matchingObject = new ContourMatcher();
 	if (!matchingObject)
 	{
+		std::cout << "FAILED TO create the matchingObject" << std::endl;
 		return 0;
 	}
 
 	//initialize the renderer
-	result = ContourRendererObject->Initialize("../Resources/Test/Suzanne.obj", 800 , 600);
+	result = ContourRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", 800 , 600);
 	if (result)
 	{
 		ContourRendererObject->Run();
 	}
+	else
+	{
+		std::cout << "FAILED TO INITIALIZE THE CONTOUR RENDERER OBJECT" << std::endl;
+		return 0;
+	}
 
 	//retrieve the vector of cv::Mat screenshots from the renderer
-	matchingObject->Initialize(ContourRendererObject->GetScreenRenders());
+	std::vector<RenderStruct> renderInfoVec = ContourRendererObject->GetScreenRenders();
+	matchingObject->Initialize(renderInfoVec);
 	
 	//OPENCV
 	//==================================================================
-	cv::Mat testImg = cv::imread("../Resources/Test/stopsign4.jpg");
-	//imshow("TestImage", testImg);
+	cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
+	cv::Mat testImg2 = cv::imread("../Resources/Test/test1_rotated.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
 
 	// Shutdown and release the RENDERER object.
 	ContourRendererObject->Shutdown();
 	delete ContourRendererObject;
 	ContourRendererObject = 0;
 
-	//CONTOUR MATCHING TEST
-	int testResult = matchingObject->MatchImgAgainstContours(testImg);
-	imshow("ContourFit", matchingObject->ContourToMat(testResult));
-	
+#pragma region DRAWGENERATEDCONTOURS
+
 	//TESTING
-	//create new object instead of reusing because resizing the window at runtime isn't easy
-	DisplayRendererObject = new OGLRenderer;
-	if (!DisplayRendererObject)
-	{
-		return 0;
-	}
-
-	result = DisplayRendererObject->Initialize("../Resources/Test/Suzanne.obj", testImg.size().width, testImg.size().height);
-	if (result)
-	{
-		DisplayRendererObject->SwitchToDisplayMode(testImg);
-		DisplayRendererObject->Run();
-	}
-
-	////TESTING
 	//=======================
 	//std::vector<std::vector<cv::Point>> contourTestImg;
 	//std::vector<cv::Vec4i> contourHierarchy;
-	//
-	//std::cout << matchingObject->GetAverageAreaRenders() << std::endl;
-	//
+
 	//ImageOperations::ExtractContourFromImage(testImg, contourTestImg, contourHierarchy, matchingObject->GetAverageAreaRenders(), matchingObject->GetAverageSquarenessRenders());
 	//
 	////DRAW CONTOURS
@@ -107,8 +96,38 @@ int main(void)
 	//
 	//}
 	//
-	//imshow("Contour", drawing);
-	
+	//imshow("IMAGE CONTOUR", drawing);
+	//imshow("IMAGE", testImg);
+#pragma endregion 
+
+	//CONTOUR MATCHING TEST
+	int testResult = matchingObject->MatchImgAgainstContours(testImg);
+	imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult));
+
+	int testResult2 = matchingObject->MatchImgAgainstContours(testImg2);
+	imshow("MATCHING CONTOUR ROTATED", matchingObject->ContourToMat(testResult2));
+
+	//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
+	//create new object instead of reusing because resizing the window at runtime isn't easy
+	//DisplayRendererObject = new OGLRenderer;
+	//if (!DisplayRendererObject)
+	//{
+	//	std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
+	//	return 0;
+	//}
+	//               
+	//result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg.size().width, testImg.size().height);
+	//if (result)
+	//{
+	//	DisplayRendererObject->SwitchToDisplayMode(testImg);
+	//	DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[testResult].rotationX,renderInfoVec[testResult].rotationY,renderInfoVec[testResult].rotationZ });
+	//	DisplayRendererObject->Run();
+	//}
+	//else
+	//{
+	//	std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
+	//	return 0;
+	//}
 
 
 	//SHUTDOWN
@@ -117,9 +136,9 @@ int main(void)
 	cv::destroyAllWindows();
 
 	// Shutdown and release the DISPLAY object.
-	DisplayRendererObject->Shutdown();
-	delete DisplayRendererObject;
-	DisplayRendererObject = 0;
+	//DisplayRendererObject->Shutdown();
+	//delete DisplayRendererObject;
+	//DisplayRendererObject = 0;
 
 	return 0;
 }

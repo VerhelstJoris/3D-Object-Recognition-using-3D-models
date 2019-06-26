@@ -2,6 +2,15 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/photo.hpp>
 
+
+struct RenderStruct
+{
+	cv::Mat renderImage;
+	float rotationX;
+	float rotationY;
+	float rotationZ;
+};
+
 namespace ImageOperations //optional, just for clarity
 {
 
@@ -30,38 +39,6 @@ namespace ImageOperations //optional, just for clarity
 		return retImage;
 	}
 	
-	//Increase the contrast of the image
-	//myImage is the image that you want to sharpen
-	//result is stored in the second parameter variable
-	//DO NOT RECOMMEND USING IT, CODE IS HERE FOR EXPLANATION AS TO HOW FUNCTIONALITY WORKS
-	static void Sharpen(const cv::Mat& myImage, cv::Mat& Result)
-	{
-		CV_Assert(myImage.depth() == CV_8U);  // accept only uchar images
-
-		const int nChannels = myImage.channels();
-		Result.create(myImage.size(), myImage.type());	//make sure result image has the same size
-
-		for (int j = 1; j < myImage.rows - 1; ++j)
-		{
-			const uchar* previous = myImage.ptr<uchar>(j - 1);
-			const uchar* current = myImage.ptr<uchar>(j);
-			const uchar* next = myImage.ptr<uchar>(j + 1);
-			uchar* output = Result.ptr<uchar>(j);
-
-			for (int i = nChannels; i < nChannels*(myImage.cols - 1); ++i)
-			{
-				*output++ = cv::saturate_cast<uchar>(5 * current[i]
-					- current[i - nChannels] - current[i + nChannels] - previous[i] - next[i]);
-			}
-		}
-
-		//borders, just reset to 0 to avoid weird results
-		Result.row(0).setTo(cv::Scalar(0));
-		Result.row(Result.rows - 1).setTo(cv::Scalar(0));
-		Result.col(0).setTo(cv::Scalar(0));
-		Result.col(Result.cols - 1).setTo(cv::Scalar(0));
-	}
-
 	static double GetShapeFactor(std::vector<cv::Point> contour)
 	{
 		double area = cv::contourArea(contour);
@@ -83,7 +60,7 @@ namespace ImageOperations //optional, just for clarity
 	{
 		cv::Mat temp1 , temp2;
 		temp1 = image;
-		cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
+		//cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
 		temp2 = ColorReduce(temp1, 2);
 
 		cv::cvtColor(temp2, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
@@ -96,20 +73,20 @@ namespace ImageOperations //optional, just for clarity
 		cv::findContours(temp1, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
 		//remove unnecessary contours
-		for (size_t i = 0; i < contours.size();)
-		{
-			double area = cv::contourArea(contours[i]);
-			if (area <= 500 /*|| !inRange(contourShapeFactor-0.1, contourShapeFactor+0.1, GetShapeFactor(contours[i]))*/)
-			{
-				contours.erase(contours.begin() + i);
-				//std::cout << "my 'King Crimson' erases elements and skips past them" << std::endl;
-			}
-			else
-			{
-				std::cout << GetShapeFactor(contours[i]) << "VS: " << contourShapeFactor << std::endl;
-				i++;
-			}
-		}
+		//for (size_t i = 0; i < contours.size();)
+		//{
+		//	double area = cv::contourArea(contours[i]);
+		//	if (area <= 500 /*|| !inRange(contourShapeFactor-0.1, contourShapeFactor+0.1, GetShapeFactor(contours[i]))*/)
+		//	{
+		//		contours.erase(contours.begin() + i);
+		//		//std::cout << "my 'King Crimson' erases elements and skips past them" << std::endl;
+		//	}
+		//	else
+		//	{
+		//		//std::cout << GetShapeFactor(contours[i]) << "VS: " << contourShapeFactor << std::endl;
+		//		i++;
+		//	}
+		//}
 
 		result = contours;
 

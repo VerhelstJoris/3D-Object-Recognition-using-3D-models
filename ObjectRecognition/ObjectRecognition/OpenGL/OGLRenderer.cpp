@@ -11,6 +11,7 @@
 #include <gtx/euler_angles.hpp>
 
 #include "OGLHelperFunctions.h"
+#include "../OpenCV/ImageOperations.h"
 
 //OPENCV
 #include <opencv2/core.hpp>
@@ -96,7 +97,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	//MESH
 	m_model = new Mesh();
-	m_model->LoadMesh("../Resources/Stopsign/stopsign.obj");
+	m_model->LoadMesh(modelFilePath);
 
 
 
@@ -253,11 +254,10 @@ void OGLRenderer::Run()
 	//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
-			{
-				m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
-				//std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
-			}
+			
+			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
+			//std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
+			
 		}
 		// Build the model matrix
 		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
@@ -329,15 +329,31 @@ void OGLRenderer::Run()
 
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
+			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees)*m_amountOfRowsToRender)
 			{
-				m_renders.push_back(ConvertOpenGLToMat(m_bufferName));
+
+				RenderStruct renderInfo;
+				renderInfo.renderImage = ConvertOpenGLToMat(m_bufferName);
+				renderInfo.rotationX = m_Orientation.x;
+				renderInfo.rotationY = m_Orientation.y;
+				renderInfo.rotationZ = m_Orientation.z;
+
+				m_renders.push_back(renderInfo);
 				m_amountOfRenders++;
 			}
 			else
 			{
-				std::cout << "RENDERS GENERATED" << std::endl;
-				keepRunning = false;
+				m_currentRowsRendered++;
+				if (m_currentRowsRendered >= m_amountOfRowsToRender)
+				{
+					std::cout << "RENDERS GENERATED" << std::endl;
+					keepRunning = false;
+				}
+				else
+				{
+					m_Orientation.x = m_angleDifferenceDegrees * m_currentRowsRendered * 0.0174532925f;
+					m_Orientation.y =0;			//degree to radian
+				}
 			}
 		}
 	}
@@ -386,7 +402,8 @@ void OGLRenderer::ProcessUserInput()
 	//CONFIRM AND START RENDERING
 	if (glfwGetKey(m_window, GLFW_KEY_ENTER) == GLFW_PRESS)
 	{
-		std::cout << "CONFIRMED" << std::endl;
+		std::cout << "CONFIRMED" << std::endl
+			<< "GENERATING RENDERS" << std::endl;
 		m_mode = RENDERER_MODE::GENERATERENDERS;
 	}
 

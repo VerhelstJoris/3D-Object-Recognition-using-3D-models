@@ -11,6 +11,8 @@ namespace cv{class Mat;}	//forward declaration
 
 class Mesh;
 
+typedef struct RenderStruct;
+
 enum RENDERER_MODE
 {
 	CAMERAMOVE,
@@ -29,8 +31,9 @@ public:
 	void Run();
 
 	void SwitchToDisplayMode(cv::Mat imageToConvert);
+	void SetModelOrientation(glm::vec3 rot) { m_Orientation = rot; };
 
-	std::vector<cv::Mat> GetScreenRenders() { return m_renders; };
+	std::vector<RenderStruct> GetScreenRenders() { return m_renders; };
 
 private:
 
@@ -54,16 +57,19 @@ private:
 	float m_cameraPosX=0.0f, m_cameraPosY=0.0f, m_cameraPosZ=7.0f;
 
 	//orientation of the object
-	glm::vec3 m_Orientation = glm::vec3(0.0f, 1.0f, 0.0f);;
+	glm::vec3 m_Orientation = glm::vec3(0.0f, 0.0f, 0.0f);;
 
-	float m_angleDifferenceDegrees = 6.0f;
+	const float m_angleDifferenceDegrees = 6.0f;
+	const int m_amountOfRowsToRender = 1;
+
+	int m_currentRowsRendered = 0;
 	int m_amountOfRenders = 0;
 
 	unsigned int m_blackColor[4] = { 0, 0, 0, 1 };		//GLUINT
 	RENDERER_MODE m_mode = RENDERER_MODE::CAMERAMOVE;
 
 	//OPENCV
-	std::vector<cv::Mat> m_renders;
+	std::vector<RenderStruct> m_renders;
 	unsigned int m_MatTex;
 };
 
