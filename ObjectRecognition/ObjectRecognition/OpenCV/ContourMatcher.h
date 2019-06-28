@@ -20,6 +20,7 @@ namespace cv
 }	
 
 typedef struct RenderStruct;
+typedef struct ContourMatchOut;
 
 
 class ContourMatcher
@@ -29,7 +30,7 @@ public:
 	~ContourMatcher();
 
 public:
-	int MatchImgAgainstContours(cv::Mat image);
+	ContourMatchOut MatchImgAgainstContours(cv::Mat image);
 
 	bool Initialize(std::vector<RenderStruct>& renders);
 
@@ -44,7 +45,7 @@ private:
 
 
 	std::vector<RenderStruct> m_renders;
-	std::vector<std::vector<cv::Point>> m_contours;
+	std::vector<std::vector<cv::Point>> m_contoursRenders;
 
 	//CAN'T USE UNTIL FWD DECLARATION WORKS
 	//cv::Size m_imageSize;

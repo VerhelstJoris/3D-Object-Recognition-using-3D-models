@@ -57,10 +57,15 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
+	//cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
 	cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
-	cv::Mat testImg2 = cv::imread("../Resources/Test/test1_rotated.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
 
+	cv::Mat testImg2 = cv::imread("../Resources/Test/test1_rotated.jpg");
+	//cv::Mat testImg3 = cv::imread("../Resources/Test/test1_rotated2.jpg");
+	//cv::Mat testImg4 = cv::imread("../Resources/Test/test1_rotated3.jpg");
+
+	
 	// Shutdown and release the RENDERER object.
 	ContourRendererObject->Shutdown();
 	delete ContourRendererObject;
@@ -68,11 +73,11 @@ int main(void)
 
 #pragma region DRAWGENERATEDCONTOURS
 
-	//TESTING
-	//=======================
+	////TESTING
+	////=======================
 	//std::vector<std::vector<cv::Point>> contourTestImg;
 	//std::vector<cv::Vec4i> contourHierarchy;
-
+	//
 	//ImageOperations::ExtractContourFromImage(testImg, contourTestImg, contourHierarchy, matchingObject->GetAverageAreaRenders(), matchingObject->GetAverageSquarenessRenders());
 	//
 	////DRAW CONTOURS
@@ -101,14 +106,35 @@ int main(void)
 #pragma endregion 
 
 	//CONTOUR MATCHING TEST
-	int testResult = matchingObject->MatchImgAgainstContours(testImg);
-	imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult));
 
-	int testResult2 = matchingObject->MatchImgAgainstContours(testImg2);
-	imshow("MATCHING CONTOUR ROTATED", matchingObject->ContourToMat(testResult2));
+	
 
-	//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
-	//create new object instead of reusing because resizing the window at runtime isn't easy
+	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg2);
+	imshow("MATCHING CONTOUR ROTATED", matchingObject->ContourToMat(testResult2.lowestRenderID));
+
+	ContourMatchOut testResult = matchingObject->MatchImgAgainstContours(testImg);
+	imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult.lowestRenderID));
+	
+	//TEST FOR ROTATION
+	std::vector<cv::Point> contourRot;
+	double lowestResult = 1000000.0;
+	int lowestID = 0;
+	for (size_t i = 0; i < 60; i++)
+	{
+		ImageOperations::RotateContour(testResult2.lowestContourRender, contourRot, 6 * i, cv::Point(0, 0));
+		double result = cv::matchShapes(contourRot, testResult2.lowestContourImage, cv::CONTOURS_MATCH_I1, 0.0);
+
+		if (result <= lowestResult)
+		{
+			lowestResult = result;
+			lowestID = i;
+		}
+	}
+	
+	std::cout << "BEST MATCH WITH: " << lowestID * 6 << "Rotation with: " << lowestResult << std::endl;
+
+	////create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
+	////create new object instead of reusing because resizing the window at runtime isn't easy
 	//DisplayRendererObject = new OGLRenderer;
 	//if (!DisplayRendererObject)
 	//{

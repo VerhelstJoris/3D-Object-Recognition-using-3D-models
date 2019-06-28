@@ -43,7 +43,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	}
 
-	glfwWindowHint(GLFW_SAMPLES, 4);					//amount of samples per pixel
+	glfwWindowHint(GLFW_SAMPLES, 1);					//amount of samples per pixel
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);		//set to version 3.3 of opengl
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);	//only use core profile
@@ -244,7 +244,6 @@ void OGLRenderer::Run()
 		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)m_WindowWidth / (float)m_WindowHeight, 0.1f, 100.0f);
 		glm::mat4 ViewMatrix = glm::lookAt(
 			glm::vec3(m_cameraPosX, m_cameraPosY, m_cameraPosZ), // Camera is here, in World Space
-			//glm::vec3(0, 0, 0), // and looks at the origin
 			glm::vec3(m_cameraPosX, m_cameraPosY, m_cameraPosZ-10.0f), // and looks forward
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
