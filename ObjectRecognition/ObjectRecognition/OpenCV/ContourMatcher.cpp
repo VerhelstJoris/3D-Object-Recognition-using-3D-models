@@ -92,7 +92,7 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	//=======================================================================
 	double lowestResult = 10000000.0;
 	int lowestRenderID = 0;
-	int lowestContourID = 0;
+	int lowestImageContourID = 0;
 	for (size_t i = 0; i < m_renders.size(); i++)
 	{
 		double resultMatch = 0.0;
@@ -114,35 +114,31 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 			{
 				lowestResult = resultMatch;
 				lowestRenderID = i;
-				lowestContourID = j;
+				lowestImageContourID = j;
 			}
 		}
 	
 	}
 	std::cout << std::endl;
 	
-
 	//cv::Mat drawing = cv::Mat::zeros(image.size().height, image.size().width, CV_8UC3);
 	//cv::Scalar color = cv::Scalar(255,0,0);
 	//std::vector<cv::Vec4i> hierarchy;
-	//drawContours(drawing, imageContours, lowestContourID, color, 0.5, 8, hierarchy, 0, cv::Point());
+	//drawContours(drawing, imageContours, lowestImageContourID, color, 0.5, 8, hierarchy, 0, cv::Point());
 	//imshow("CONTOURMATCH", drawing);
 
-	//DOES NOT WORK
 	ContourMatchOut output;
-	output.lowestContourRender.reserve(m_contoursRenders[lowestContourID].size());
-	std::copy(m_contoursRenders[lowestContourID].begin(), m_contoursRenders[lowestContourID].end(), std::back_inserter(output.lowestContourRender));
+	output.lowestContourID = lowestImageContourID;
+	output.lowestRenderID = lowestRenderID;
+	output.lowestResult = lowestResult;
+
+	output.lowestContourRender.reserve(m_contoursRenders[lowestRenderID].size());
+	std::copy(m_contoursRenders[lowestRenderID].begin(), m_contoursRenders[lowestRenderID].end(), std::back_inserter(output.lowestContourRender));
+
+	output.lowestContourImage.reserve(imageContours[lowestImageContourID].size());
+	std::copy(imageContours[lowestImageContourID].begin(), imageContours[lowestImageContourID].end(), std::back_inserter(output.lowestContourImage));
 	
-	std::cout << "COPIED 1 " << std::endl;
-
-
-	//To-DO:
-	//DOES NOT WORK
-	output.lowestContourImage.reserve(imageContours[lowestRenderID].size());
-	std::copy(imageContours[lowestRenderID].begin(), imageContours[lowestRenderID].end(), std::back_inserter(output.lowestContourImage));
-
-	//output.lowestContourRender = imageContours[output.lowestRenderID];
-	std::cout << std::endl << std::endl << "Render with ID: " << output.lowestRenderID << " is the best fit with value: " << output.lowestResult << " to contour " << output.lowestContourID << std::endl;
+	std::cout << "Render with ID: " << output.lowestRenderID << " is the best fit with value: " << output.lowestResult << " to contour " << output.lowestContourID << std::endl << std::endl;
 
 
 	return output;

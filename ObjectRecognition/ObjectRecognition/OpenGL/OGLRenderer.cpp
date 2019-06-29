@@ -199,13 +199,11 @@ void OGLRenderer::Run()
 	bool keepRunning = true;
 
 	while (keepRunning==true)
-	//while (!glfwWindowShouldClose(m_window))
 	{
 		//INPUT
-		if (m_mode == RENDERER_MODE::CAMERAMOVE)
-		{
-			ProcessUserInput();
-		}
+		
+		ProcessUserInput();
+		
 	
 
 	#pragma region RENDERING
@@ -368,45 +366,56 @@ void OGLRenderer::ProcessUserInput()
 	}
 
 
-	//move UP/DOWN
-	if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	if (m_mode == RENDERER_MODE::CAMERAMOVE)
 	{
-		m_cameraPosY += 0.1f;
-	}
-	else if (glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-	{
-		m_cameraPosY -= 0.1f;
+		//move UP/DOWN
+		if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		{
+			m_cameraPosY += 0.1f;
+		}
+		else if (glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		{
+			m_cameraPosY -= 0.1f;
+		}
+
+		//MOVE FORWARD/BACK
+		if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			m_cameraPosZ -= 0.1f;
+		}
+		else if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			m_cameraPosZ += 0.1f;
+		}
+
+		//MOVE LEFT/RIGHT
+		if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			m_cameraPosX -= 0.1f;
+		}
+		else if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			m_cameraPosX += 0.1f;
+		}
+
+		//CONFIRM AND START RENDERING
+		if (glfwGetKey(m_window, GLFW_KEY_ENTER) == GLFW_PRESS)
+		{
+			std::cout << "CONFIRMED" << std::endl
+				<< "GENERATING RENDERS" << std::endl;
+			m_mode = RENDERER_MODE::GENERATERENDERS;
+		}
 	}
 
-	//MOVE FORWARD/BACK
-	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+	if (m_mode == RENDERER_MODE::DISPLAY)
 	{
-		m_cameraPosZ -= 0.1f;
-	}
-	else if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		m_cameraPosZ += 0.1f;
-	}
+		//TEST ROTATION
+		if (glfwGetKey(m_window, GLFW_KEY_P) == GLFW_PRESS)
+		{
+			m_Orientation.z += 6 * 0.0174532925f;
+		}
 
-	//MOVE LEFT/RIGHT
-	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		m_cameraPosX -= 0.1f;
 	}
-	else if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		m_cameraPosX += 0.1f;
-	}
-
-	//CONFIRM AND START RENDERING
-	if (glfwGetKey(m_window, GLFW_KEY_ENTER) == GLFW_PRESS)
-	{
-		std::cout << "CONFIRMED" << std::endl
-			<< "GENERATING RENDERS" << std::endl;
-		m_mode = RENDERER_MODE::GENERATERENDERS;
-	}
-
-
 
 	/* Poll for and process events */
 	glfwPollEvents();

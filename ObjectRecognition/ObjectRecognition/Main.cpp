@@ -16,6 +16,10 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
+const float DEG2RAD = 0.0174532925f;
+
+
+
 int main(void)
 {
 	//OPENGL object renderer
@@ -58,7 +62,7 @@ int main(void)
 	//OPENCV
 	//==================================================================
 	//cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
-	cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
 
 	cv::Mat testImg2 = cv::imread("../Resources/Test/test1_rotated.jpg");
@@ -106,54 +110,58 @@ int main(void)
 #pragma endregion 
 
 	//CONTOUR MATCHING TEST
-
-	
-
 	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg2);
 	imshow("MATCHING CONTOUR ROTATED", matchingObject->ContourToMat(testResult2.lowestRenderID));
 
-	ContourMatchOut testResult = matchingObject->MatchImgAgainstContours(testImg);
-	imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult.lowestRenderID));
+	//ContourMatchOut testResult = matchingObject->MatchImgAgainstContours(testImg);
+	//imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult.lowestRenderID));
 	
 	//TEST FOR ROTATION
+	std::cout << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
+
 	std::vector<cv::Point> contourRot;
 	double lowestResult = 1000000.0;
 	int lowestID = 0;
+	float finalRot = 0.0f;
 	for (size_t i = 0; i < 60; i++)
 	{
-		ImageOperations::RotateContour(testResult2.lowestContourRender, contourRot, 6 * i, cv::Point(0, 0));
-		double result = cv::matchShapes(contourRot, testResult2.lowestContourImage, cv::CONTOURS_MATCH_I1, 0.0);
+		float rot = 6 * i * DEG2RAD;
 
+		ImageOperations::RotateContour(testResult2.lowestContourRender, contourRot, 6*i*DEG2RAD, cv::Point(0, 0));
+		double result = cv::matchShapes(contourRot, testResult2.lowestContourImage, cv::CONTOURS_MATCH_I1, 0.0);
+		std::cout << result << " | ";
 		if (result <= lowestResult)
 		{
 			lowestResult = result;
 			lowestID = i;
+			finalRot = rot;
 		}
 	}
-	
-	std::cout << "BEST MATCH WITH: " << lowestID * 6 << "Rotation with: " << lowestResult << std::endl;
 
-	////create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
-	////create new object instead of reusing because resizing the window at runtime isn't easy
-	//DisplayRendererObject = new OGLRenderer;
-	//if (!DisplayRendererObject)
-	//{
-	//	std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
-	//	return 0;
-	//}
-	//               
-	//result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg.size().width, testImg.size().height);
-	//if (result)
-	//{
-	//	DisplayRendererObject->SwitchToDisplayMode(testImg);
-	//	DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[testResult].rotationX,renderInfoVec[testResult].rotationY,renderInfoVec[testResult].rotationZ });
-	//	DisplayRendererObject->Run();
-	//}
-	//else
-	//{
-	//	std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
-	//	return 0;
-	//}
+	std::cout << "BEST MATCH WITH: " << lowestID * 6 << " degrees rotation with value: " << lowestResult << std::endl << std::endl;
+
+	//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
+	//create new object instead of reusing because resizing the window at runtime isn't easy
+	DisplayRendererObject = new OGLRenderer;
+	if (!DisplayRendererObject)
+	{
+		std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
+		return 0;
+	}
+	               
+	result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg2.size().width, testImg2.size().height);
+	if (result)
+	{
+		int id = testResult2.lowestRenderID;
+		DisplayRendererObject->SwitchToDisplayMode(testImg2);
+		DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + finalRot });
+		DisplayRendererObject->Run();
+	}
+	else
+	{
+		std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
+		return 0;
+	}
 
 
 	//SHUTDOWN
