@@ -120,13 +120,6 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	
 	}
 	std::cout << std::endl;
-	std::cout << std::setprecision(5);
-
-	//cv::Mat drawing = cv::Mat::zeros(image.size().height, image.size().width, CV_8UC3);
-	//cv::Scalar color = cv::Scalar(255,0,0);
-	//std::vector<cv::Vec4i> hierarchy;
-	//drawContours(drawing, imageContours, lowestImageContourID, color, 0.5, 8, hierarchy, 0, cv::Point());
-	//imshow("CONTOURMATCH", drawing);
 
 	ContourMatchOut output;
 	output.lowestContourID = lowestImageContourID;
@@ -140,6 +133,7 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	std::copy(imageContours[lowestImageContourID].begin(), imageContours[lowestImageContourID].end(), std::back_inserter(output.lowestContourImage));
 	
 	std::cout << "Render with ID: " << output.lowestRenderID << " is the best fit with value: " << output.lowestResult << " to contour " << output.lowestContourID << std::endl << std::endl;
+	std::cout << std::setprecision(9);
 
 
 	return output;

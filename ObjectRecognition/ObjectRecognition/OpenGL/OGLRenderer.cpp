@@ -31,6 +31,7 @@ OGLRenderer::~OGLRenderer()
 
 bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int windowHeight)
 {
+	#pragma region WINDOW_SETUP
 	m_WindowWidth= windowWidth;
 	m_WindowHeight = windowHeight;
 
@@ -82,6 +83,8 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	// Cull triangles which normal is not towards the camera
 	//glEnable(GL_CULL_FACE);
 
+	#pragma endregion 
+
 	#pragma region RENDERING
 
 	glGenVertexArrays(1, &m_vertexArrayID);
@@ -95,11 +98,9 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	m_viewMatrixID = glGetUniformLocation(m_programID, "V");
 	m_modelMatrixID = glGetUniformLocation(m_programID, "M");
 
-	//MESH
+	//model
 	m_model = new Mesh();
 	m_model->LoadMesh(modelFilePath);
-
-
 
 #pragma endregion
 
@@ -167,12 +168,15 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	#pragma endregion
 
-	std::cout << std::endl << std::endl;
-	std::cout << "========================================================" << std::endl;
-	std::cout << "move the camera around until the object is full in screen" << std::endl;
-	std::cout << "WASD to move forward/back and left/right" << std::endl;
-	std::cout << "SPACE and Left CTRL to move up/down" << std::endl;
-	std::cout << "ENTER to confirm and start the rendering" << std::endl;
+	if (m_mode == RENDERER_MODE::CAMERAMOVE)
+	{
+		std::cout << std::endl << std::endl;
+		std::cout << "========================================================" << std::endl;
+		std::cout << "move the camera around until the object is full in screen" << std::endl;
+		std::cout << "WASD to move forward/back and left/right" << std::endl;
+		std::cout << "SPACE and Left CTRL to move up/down" << std::endl;
+		std::cout << "ENTER to confirm and start the rendering" << std::endl;
+	}
 
 	return true;
 }
@@ -190,13 +194,20 @@ void OGLRenderer::Shutdown()
 
 	glDeleteTextures(1, &m_MatTex);
 
+	delete m_model;
 
 	glfwTerminate();
+
+	std::cout << "SHUTTING DOWN RENDERER" << std::endl << std::endl;
 }
 
 void OGLRenderer::Run()
 {
 	bool keepRunning = true;
+
+	//BEST APPROACH???
+	m_Orientation.x = -(m_angleDifferenceDegrees * 0.0174532925f)* (int)(m_amountOfRowsToRender / 2);
+
 
 	while (keepRunning==true)
 	{
@@ -204,8 +215,6 @@ void OGLRenderer::Run()
 		
 		ProcessUserInput();
 		
-	
-
 	#pragma region RENDERING
 	
 		// Clear the screen
@@ -251,19 +260,16 @@ void OGLRenderer::Run()
 	//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			
-			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian
-			//std::cout << m_angleDifferenceDegrees * m_amountOfRenders << std::endl;
-			
+			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian			
 		}
 		// Build the model matrix
 		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
+		//glm::mat4 RotationMatrix = glm::eulerAngleXYZ(m_Orientation.x, m_Orientation.y, m_Orientation.z);
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
 		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0,1.0,1.0));			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
 	
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-	
 	
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
@@ -273,7 +279,6 @@ void OGLRenderer::Run()
 	
 		#pragma endregion
 	
-
 		m_model->Render();
 
 		
@@ -326,7 +331,7 @@ void OGLRenderer::Run()
 
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees)*m_amountOfRowsToRender)
+			if (m_amountOfRenders < (int)(360.0f / m_angleDifferenceDegrees))
 			{
 
 				RenderStruct renderInfo;
@@ -343,13 +348,15 @@ void OGLRenderer::Run()
 				m_currentRowsRendered++;
 				if (m_currentRowsRendered >= m_amountOfRowsToRender)
 				{
-					std::cout << "RENDERS GENERATED" << std::endl;
+					std::cout << "RENDERS GENERATED" << std::endl << std::endl;
 					keepRunning = false;
 				}
 				else
 				{
-					m_Orientation.x = m_angleDifferenceDegrees * m_currentRowsRendered * 0.0174532925f;
+					m_Orientation.x += (m_angleDifferenceDegrees * 0.0174532925f);
 					m_Orientation.y =0;			//degree to radian
+					std::cout << "NEXT ROW" << std::endl;
+					m_amountOfRenders = 0;
 				}
 			}
 		}

@@ -60,7 +60,7 @@ private:
 	glm::vec3 m_Orientation = glm::vec3(0.0f, 0.0f, 0.0f);;
 
 	const float m_angleDifferenceDegrees = 6.0f;
-	const int m_amountOfRowsToRender = 1;
+	const int m_amountOfRowsToRender = 5;
 
 	int m_currentRowsRendered = 0;
 	int m_amountOfRenders = 0;

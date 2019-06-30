@@ -143,7 +143,7 @@ int main(void)
 	//imshow("IMAGE CONTOUR", drawing);
 
 
-	std::cout << "BEST MATCH WITH: " << lowestID * 6 << " degrees rotation with value: " << lowestResult << std::endl << std::endl;
+	std::cout <<std::endl << "BEST MATCH WITH: " << lowestID * 6 << " degrees rotation with value: " << lowestResult << std::endl << std::endl;
 
 	//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
 	//create new object instead of reusing because resizing the window at runtime isn't easy
