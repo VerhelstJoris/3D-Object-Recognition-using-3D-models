@@ -8,6 +8,7 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "OpenCV/ImageOperations.h"
 
@@ -62,12 +63,7 @@ int main(void)
 	//OPENCV
 	//==================================================================
 	//cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
-
 	cv::Mat testImg2 = cv::imread("../Resources/Test/test1_rotated.jpg");
-	//cv::Mat testImg3 = cv::imread("../Resources/Test/test1_rotated2.jpg");
-	//cv::Mat testImg4 = cv::imread("../Resources/Test/test1_rotated3.jpg");
 
 	
 	// Shutdown and release the RENDERER object.
@@ -83,52 +79,51 @@ int main(void)
 	//std::vector<cv::Vec4i> contourHierarchy;
 	//
 	//ImageOperations::ExtractContourFromImage(testImg, contourTestImg, contourHierarchy, matchingObject->GetAverageAreaRenders(), matchingObject->GetAverageSquarenessRenders());
-	//
-	////DRAW CONTOURS
-	//auto size = testImg.size();
-	//cv::Mat drawing = cv::Mat::zeros(size.height, size.width, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
-	//
-	//cv::Scalar color;
-	//std::vector<cv::Vec4i> hierarchy;
-	//
-	//cv::RNG rng(12345);
-	//
-	//for (int i = 0; i < contourTestImg.size(); i++)
+
+	//int idx = 0;
+	//same hierarchy -> SAME COLOUR
+	//for (; idx >= 0; idx = hierarchy[idx][0])
 	//{
-	//	cv::Scalar color;
-	//	//if (contourHierarchy[i][2] != -1) 
-	//	{
-	//		// random colour
-	//		color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-	//		drawContours(drawing, contourTestImg, i, color, 0.5, 8, hierarchy, 0, cv::Point());
-	//	}
-	//
+	//	Scalar color(rand() & 255, rand() & 255, rand() & 255);
+	//	drawContours(dst, contours, idx, color, FILLED, 8, hierarchy);
 	//}
-	//
-	//imshow("IMAGE CONTOUR", drawing);
-	//imshow("IMAGE", testImg);
+	
+
 #pragma endregion 
 
 	//CONTOUR MATCHING TEST
 	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg2);
 	imshow("MATCHING CONTOUR ROTATED", matchingObject->ContourToMat(testResult2.lowestRenderID));
 
-	//ContourMatchOut testResult = matchingObject->MatchImgAgainstContours(testImg);
-	//imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult.lowestRenderID));
 	
 	//TEST FOR ROTATION
 	std::cout << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
 
+	//drwaing related
+	auto size = testImg2.size();
+	cv::Mat drawing = cv::Mat::zeros(size.height *2, size.width *2 , CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
+	cv::Scalar color;
+	std::vector<cv::Vec4i> hierarchy;
+	std::vector<std::vector<cv::Point>> contourRotVec;
+
+	cv::RNG rng(12345);
+
+	//rotation related
 	std::vector<cv::Point> contourRot;
 	double lowestResult = 1000000.0;
 	int lowestID = 0;
 	float finalRot = 0.0f;
+
 	for (size_t i = 0; i < 60; i++)
 	{
 		float rot = 6 * i * DEG2RAD;
 
-		ImageOperations::RotateContour(testResult2.lowestContourRender, contourRot, 6*i*DEG2RAD, cv::Point(0, 0));
+		cv::Rect rect = cv::boundingRect(testResult2.lowestContourRender);
+		cv::Point center = { rect.x + (rect.width / 2),rect.y + (rect.height / 2) };
+		ImageOperations::RotateContour(testResult2.lowestContourRender, contourRot, 6 * i, center);
+		contourRotVec.push_back(contourRot);
 		double result = cv::matchShapes(contourRot, testResult2.lowestContourImage, cv::CONTOURS_MATCH_I1, 0.0);
+
 		std::cout << result << " | ";
 		if (result <= lowestResult)
 		{
@@ -137,6 +132,16 @@ int main(void)
 			finalRot = rot;
 		}
 	}
+
+
+	//for (size_t i = 0; i < contourRotVec.size(); i++)
+	//{
+	//	cv::Scalar color(rand() & 255, rand() & 255, rand() & 255);
+	//	cv::drawContours(drawing, contourRotVec, i, color,1, 8, hierarchy);
+	//}
+	//
+	//imshow("IMAGE CONTOUR", drawing);
+
 
 	std::cout << "BEST MATCH WITH: " << lowestID * 6 << " degrees rotation with value: " << lowestResult << std::endl << std::endl;
 

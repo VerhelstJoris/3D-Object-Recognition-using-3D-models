@@ -120,7 +120,8 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	
 	}
 	std::cout << std::endl;
-	
+	std::cout << std::setprecision(5);
+
 	//cv::Mat drawing = cv::Mat::zeros(image.size().height, image.size().width, CV_8UC3);
 	//cv::Scalar color = cv::Scalar(255,0,0);
 	//std::vector<cv::Vec4i> hierarchy;
