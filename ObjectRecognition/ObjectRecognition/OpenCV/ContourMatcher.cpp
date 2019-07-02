@@ -57,7 +57,7 @@ void ContourMatcher::GenerateContours()
 		averageSquareness += ImageOperations::GetShapeFactor(contourSingle);
 		averageArea += cv::contourArea(contourSingle);
 
-		//std::cout << "finished copying vector into single vector" << std::endl;
+		std::cout << "finished generating contour id: " << i << std::endl;
 	}
 	
 	//m_averageArea = averageArea / (double)m_renders.size();
@@ -86,21 +86,15 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	//get contours of  image
 	std::vector<std::vector<cv::Point>> imageContours;
 	std::vector<cv::Vec4i> contourHierarchy;
-	ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy, m_averageArea, m_averageSquareness);
+	ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy);
 
-	//NEW
-	//=======================================================================
+
 	double lowestResult = 10000000.0;
 	int lowestRenderID = 0;
 	int lowestImageContourID = 0;
 	for (size_t i = 0; i < m_renders.size(); i++)
 	{
 		double resultMatch = 0.0;
-
-		//test by matching Mat against Mat (both single channel)
-		cv::Mat temp;
-		cv::Canny(m_renders[i].renderImage, temp, 100, 100);
-		//resultMatch= cv::matchShapes(grayImg, temp, cv::CONTOURS_MATCH_I1, 0.0);
 
 		std::cout << std::fixed;
 		std::cout << std::setprecision(2);
@@ -113,16 +107,17 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 			if (resultMatch <= lowestResult)
 			{
 				lowestResult = resultMatch;
-				lowestRenderID = i;
-				lowestImageContourID = j;
+				lowestRenderID = (int)i;
+				lowestImageContourID = (int)j;
 			}
 		}
+
 	
 	}
-	std::cout << std::endl;
+	std::cout << std::endl << "FINISHED MATCHING" << std::endl;
 
 	ContourMatchOut output;
-	output.lowestContourID = lowestImageContourID;
+	output.lowestImageContourID = lowestImageContourID;
 	output.lowestRenderID = lowestRenderID;
 	output.lowestResult = lowestResult;
 
@@ -132,7 +127,7 @@ ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
 	output.lowestContourImage.reserve(imageContours[lowestImageContourID].size());
 	std::copy(imageContours[lowestImageContourID].begin(), imageContours[lowestImageContourID].end(), std::back_inserter(output.lowestContourImage));
 	
-	std::cout << "Render with ID: " << output.lowestRenderID << " is the best fit with value: " << output.lowestResult << " to contour " << output.lowestContourID << std::endl << std::endl;
+	std::cout << "Render with ID: " << output.lowestRenderID << " is the best fit with value: " << output.lowestResult << " to contour " << output.lowestImageContourID << std::endl << std::endl;
 	std::cout << std::setprecision(9);
 
 

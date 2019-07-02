@@ -266,7 +266,7 @@ void OGLRenderer::Run()
 		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
 		//glm::mat4 RotationMatrix = glm::eulerAngleXYZ(m_Orientation.x, m_Orientation.y, m_Orientation.z);
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
-		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0,1.0,1.0));			//scale (1,1,1)
+		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1,1,1));			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
 	
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
@@ -463,7 +463,7 @@ void OGLRenderer::ConvertMatToTexture(cv::Mat& image, GLuint& imageTexture)
 		glPixelStorei(GL_UNPACK_ALIGNMENT, (image.step & 3) ? 1 : 4);
 
 		//set length of one complete row in data (doesn't need to equal image.cols)
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.step / image.elemSize());
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, (GLint)(image.step / image.elemSize()));
 
 
 		//glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);

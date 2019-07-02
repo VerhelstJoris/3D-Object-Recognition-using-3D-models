@@ -1,25 +1,24 @@
 
 #include <iostream>
 #include <vector>
-#include <opencv2/core.hpp>
-
-#include "OpenGL/OGLRenderer.h"
-#include "OpenCV/ContourMatcher.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+//rotation test includes
+#include <opencv2/shape/shape_distance.hpp>
+#include <opencv2/shape/hist_cost.hpp>
+#include <opencv2/shape/shape_transformer.hpp>
+
+
+
+#include "OpenGL/OGLRenderer.h"
+#include "OpenCV/ContourMatcher.h"
+
 #include "OpenCV/ImageOperations.h"
 
-//assimp test
-#include <assimp/scene.h>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-
 const float DEG2RAD = 0.0174532925f;
-
-
 
 int main(void)
 {
@@ -46,6 +45,7 @@ int main(void)
 
 	//initialize the renderer
 	result = ContourRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", 800 , 600);
+	//result = ContourRendererObject->Initialize("../Resources/Test/Chair.obj", 800 , 600);
 	if (result)
 	{
 		ContourRendererObject->Run();
@@ -62,8 +62,8 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	//cv::Mat testImg = cv::imread("../Resources/Test/test1.jpg");
-	cv::Mat testImg2 = cv::imread("../Resources/Test/test1_rotated.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/chair1.jpg");
 
 	
 	// Shutdown and release the RENDERER object.
@@ -71,102 +71,89 @@ int main(void)
 	delete ContourRendererObject;
 	ContourRendererObject = 0;
 
-#pragma region DRAWGENERATEDCONTOURS
-
-	////TESTING
-	////=======================
-	//std::vector<std::vector<cv::Point>> contourTestImg;
-	//std::vector<cv::Vec4i> contourHierarchy;
-	//
-	//ImageOperations::ExtractContourFromImage(testImg, contourTestImg, contourHierarchy, matchingObject->GetAverageAreaRenders(), matchingObject->GetAverageSquarenessRenders());
-
-	//int idx = 0;
-	//same hierarchy -> SAME COLOUR
-	//for (; idx >= 0; idx = hierarchy[idx][0])
-	//{
-	//	Scalar color(rand() & 255, rand() & 255, rand() & 255);
-	//	drawContours(dst, contours, idx, color, FILLED, 8, hierarchy);
-	//}
-	
-
-#pragma endregion 
 
 	//CONTOUR MATCHING TEST
-	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg2);
-	imshow("MATCHING CONTOUR ROTATED", matchingObject->ContourToMat(testResult2.lowestRenderID));
-
+	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg);
+	imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult2.lowestRenderID));
+	
+#pragma region ROTATION
 	
 	//TEST FOR ROTATION
 	std::cout << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
 
 	//drwaing related
-	auto size = testImg2.size();
-	cv::Mat drawing = cv::Mat::zeros(size.height *2, size.width *2 , CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
+	auto size = testImg.size();
+	cv::Mat drawing = cv::Mat::zeros(size.height, size.width , CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
 	cv::Scalar color;
-	std::vector<cv::Vec4i> hierarchy;
-	std::vector<std::vector<cv::Point>> contourRotVec;
+	
+	std::vector<std::vector<cv::Point>> drawContVec;
 
-	cv::RNG rng(12345);
+	//translate render match cont
+	cv::Point2f massCentre;
+	float diagonalLength;
 
-	//rotation related
-	std::vector<cv::Point> contourRot;
-	double lowestResult = 1000000.0;
-	int lowestID = 0;
-	float finalRot = 0.0f;
+	std::vector<cv::Point> renderContTrans(testResult2.lowestContourRender.size());
+	ImageOperations::TranslateContourToPoint(testResult2.lowestContourRender, renderContTrans, cv::Point(size.width/2,size.height/2), massCentre,diagonalLength);
 
-	for (size_t i = 0; i < 60; i++)
-	{
-		float rot = 6 * i * DEG2RAD;
+	//translate image cont
+	cv::Point2f massCentre2;
+	float diagonalLength2;
 
-		cv::Rect rect = cv::boundingRect(testResult2.lowestContourRender);
-		cv::Point center = { rect.x + (rect.width / 2),rect.y + (rect.height / 2) };
-		ImageOperations::RotateContour(testResult2.lowestContourRender, contourRot, 6 * i, center);
-		contourRotVec.push_back(contourRot);
-		double result = cv::matchShapes(contourRot, testResult2.lowestContourImage, cv::CONTOURS_MATCH_I1, 0.0);
+	std::vector<cv::Point> imageContTrans(testResult2.lowestContourImage.size());
+	ImageOperations::TranslateContourToPoint(testResult2.lowestContourImage, imageContTrans, cv::Point(size.width / 2, size.height / 2), massCentre2, diagonalLength2);
 
-		std::cout << result << " | ";
-		if (result <= lowestResult)
-		{
-			lowestResult = result;
-			lowestID = i;
-			finalRot = rot;
-		}
-	}
+	//just for drawing
+	drawContVec.push_back(renderContTrans);
+	drawContVec.push_back(imageContTrans);
+	cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0,255,0));
+	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(255,0,0));
 
+	cv::imshow("CONTOURS TRANSLATED", drawing);
 
-	//for (size_t i = 0; i < contourRotVec.size(); i++)
-	//{
-	//	cv::Scalar color(rand() & 255, rand() & 255, rand() & 255);
-	//	cv::drawContours(drawing, contourRotVec, i, color,1, 8, hierarchy);
-	//}
-	//
-	//imshow("IMAGE CONTOUR", drawing);
+	//result 
+	double result1 = cv::matchShapes(renderContTrans, imageContTrans, cv::CONTOURS_MATCH_I1, 0.0);
+	double result2 = cv::matchShapes(testResult2.lowestContourRender, testResult2.lowestContourImage, cv::CONTOURS_MATCH_I1, 0.0);
+
+	std::cout << result1 << std::endl << result2 << std::endl;
+
+	cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
+	//cv::Ptr <cv::ShapeContextDistanceExtractor> mysc;
+	//float dis = mysc->computeDistance(renderContTrans, imageContTrans);
+	//float dis2 = mysc->computeDistance(testResult2.lowestContourRender, testResult2.lowestContourImage);
+
+	//std::cout << dis << " , " << dis2 << std::endl;
 
 
-	std::cout <<std::endl << "BEST MATCH WITH: " << lowestID * 6 << " degrees rotation with value: " << lowestResult << std::endl << std::endl;
 
+
+
+
+#pragma endregion
+
+
+#pragma region DISPLAY
 	//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
 	//create new object instead of reusing because resizing the window at runtime isn't easy
-	DisplayRendererObject = new OGLRenderer;
-	if (!DisplayRendererObject)
-	{
-		std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
-		return 0;
-	}
-	               
-	result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg2.size().width, testImg2.size().height);
-	if (result)
-	{
-		int id = testResult2.lowestRenderID;
-		DisplayRendererObject->SwitchToDisplayMode(testImg2);
-		DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + finalRot });
-		DisplayRendererObject->Run();
-	}
-	else
-	{
-		std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
-		return 0;
-	}
+	//DisplayRendererObject = new OGLRenderer;
+	//if (!DisplayRendererObject)
+	//{
+	//	std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
+	//	return 0;
+	//}
+	//               
+	//result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg.size().width, testImg.size().height);
+	//if (result)
+	//{
+	//	int id = testResult2.lowestRenderID;
+	//	DisplayRendererObject->SwitchToDisplayMode(testImg);
+	//	DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + finalRot });
+	//	DisplayRendererObject->Run();
+	//}
+	//else
+	//{
+	//	std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
+	//	return 0;
+	//}
 
 
 	//SHUTDOWN
@@ -178,6 +165,8 @@ int main(void)
 	//DisplayRendererObject->Shutdown();
 	//delete DisplayRendererObject;
 	//DisplayRendererObject = 0;
+
+#pragma endregion
 
 	return 0;
 }

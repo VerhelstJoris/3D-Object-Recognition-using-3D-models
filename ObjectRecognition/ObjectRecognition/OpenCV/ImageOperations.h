@@ -14,7 +14,7 @@ struct RenderStruct
 struct ContourMatchOut
 {
 	int lowestRenderID;
-	int lowestContourID;
+	int lowestImageContourID;
 	double lowestResult;
 	std::vector<cv::Point> lowestContourRender;
 	std::vector<cv::Point> lowestContourImage;
@@ -65,11 +65,11 @@ namespace ImageOperations //optional, just for clarity
 
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult, double contourArea, double contourShapeFactor, int kernelSize = 50,int thresholdValue = 50)
+	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult)
 	{
 		cv::Mat temp1 , temp2;
 		std::vector<std::vector<cv::Point>> contours;
-		temp1 = image;
+		//temp1 = image;
 
 		cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
 		temp2 = ColorReduce(temp1, 2);
@@ -78,7 +78,6 @@ namespace ImageOperations //optional, just for clarity
 		cv::blur(temp1, temp2, cv::Size(3,3));
 
 		cv::Canny(temp2, temp1, 0, 100);
-
 
 		//THRESHOLD THE IMAGE????????
 		//gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -89,10 +88,13 @@ namespace ImageOperations //optional, just for clarity
 
 		cv::findContours(temp1, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
-		//std::cout << image.size().width << " " << image.size().height << std::endl;
-		float maxSize = image.size().width * image.size().height / 400.0f;
+
+		//paste together contours that are on the same level???
+
 
 		//remove small contours
+		float maxSize = image.size().width * image.size().height / 400.0f;
+
 		for (size_t i = 0; i < contours.size();)
 		{
 			double area = cv::contourArea(contours[i]);
@@ -133,16 +135,72 @@ namespace ImageOperations //optional, just for clarity
 		return;
 	}
 
-	static cv::Point RotatePoint(const cv::Mat &R, const cv::Point &p)
+	static cv::Point RotatePoint(const cv::Mat &image, const cv::Point &point)
 	{
 		cv::Point2f rotated;
-		rotated.x = (float)(R.at<double>(0, 0)*p.x + R.at<double>(0, 1)*p.y + R.at<double>(0, 2));
-		rotated.y = (float)(R.at<double>(1, 0)*p.x + R.at<double>(1, 1)*p.y + R.at<double>(1, 2));
+		rotated.x = (float)(image.at<double>(0, 0)*point.x + image.at<double>(0, 1)*point.y + image.at<double>(0, 2));
+		rotated.y = (float)(image.at<double>(1, 0)*point.x + image.at<double>(1, 1)*point.y + image.at<double>(1, 2));
 		return rotated;
 	}
 
+	static bool FindBlobs(const std::vector<cv::Point> &contours, cv::Point2f &MassCentre, float& DiagonalLength)
+	{
+	
+		cv::Rect boundsRect;
+		cv::Moments momentsVal;
+
+		// Find Minimum bounding Rect
+		boundsRect = cv::boundingRect(cv::Mat(contours));
+
+		// Get the moments 
+		momentsVal = moments(contours, false);
+
+		// Find the Mass Centre
+		MassCentre = (cv::Point2f(static_cast<float>(momentsVal.m10 / momentsVal.m00), static_cast<float>(momentsVal.m01 / momentsVal.m00)));
+
+		//Find Distance between the TopLeft  and Bottrom Right Points
+		DiagonalLength = ((float)cv::norm(boundsRect.tl() - boundsRect.br()));
+		
+		//std::cout << "DIAGONAL LENGTH OF: " << diagonalLength << std::endl;
+		//std::cout << "CENTER AT: " << massCentre.x << ", " << massCentre.y << std::endl << std::endl;
+
+		return 1;
+	}
+
+	static bool TranslateContour(std::vector<cv::Point> contours, std::vector<cv::Point> &result, cv::Vec2f Translate)
+	{
+		if (contours.size() == 0)
+		{
+			std::cout << "Invalid input!";
+			return 0;
+		}
+
+		result = contours;
+
+		for (size_t i = 0; i < contours.size(); i++)
+		{	
+			result[i] = cv::Point(contours[i].x + Translate(0), contours[i].y + Translate(1));
+		}
+		return 1;
+	}
+
+	static void TranslateContourToPoint(std::vector<cv::Point> contour, std::vector<cv::Point>& result, cv::Point endPoint, cv::Point2f &massCentre, float& diagonalLength)
+	{
+		ImageOperations::FindBlobs(contour, massCentre, diagonalLength);
+
+		std::vector<cv::Point> contours_Trans(contour.size());
+		cv::Point2f ptCCentre(diagonalLength / 2, diagonalLength / 2);
+		//cv::Vec2f Translation(ptCCentre.x - massCentre.x, ptCCentre.y - massCentre.y);
+		cv::Vec2f Translation(massCentre.x - endPoint.x, massCentre.y - endPoint.y);
+
+		//Move the contour Mass Center to the Image Space Centre!
+		ImageOperations::TranslateContour(contour, contours_Trans, -Translation);
+
+		result = contours_Trans;
+	}
+
 	//rotate a single contour around a centerpoint
-	static bool RotateContour(std::vector<cv::Point> contour, std::vector<cv::Point> &contours_Rotated, float angle, cv::Point2f center)
+	static bool RotateContour(std::vector<cv::Point> contour, std::vector<cv::Point> &result, float angle, cv::Point2f center)
 	{
 		if (contour.size() == 0)
 		{
@@ -151,14 +209,42 @@ namespace ImageOperations //optional, just for clarity
 		}
 
 		cv::Mat mRot = cv::getRotationMatrix2D(center, (double)angle, 1.0);
-		contours_Rotated = contour;
+		result = contour;
 
 		for (int i = 0; i < contour.size(); i++)
 		{
-			contours_Rotated[i] = RotatePoint(mRot, contour[i]);
+			result[i] = RotatePoint(mRot, contour[i]);
 		}
 		
 		return true;
+	}
+
+	static std::vector<cv::Point> simpleContour(std::vector<std::vector<cv::Point>> _contoursQuery, int n = 300)
+	{
+		std::vector<cv::Point> contoursQuery;
+		for (size_t border = 0; border < _contoursQuery.size(); border++)
+		{
+			for (size_t p = 0; p < _contoursQuery[border].size(); p++)
+			{
+				contoursQuery.push_back(_contoursQuery[border][p]);
+			}
+		}
+
+		// In case actual number of points is less than n
+		int dummy = 0;
+		for (int add = (int)contoursQuery.size() - 1; add < n; add++)
+		{
+			contoursQuery.push_back(contoursQuery[dummy++]); //adding dummy values
+		}
+
+		// Uniformly sampling
+		random_shuffle(contoursQuery.begin(), contoursQuery.end());
+		std::vector<cv::Point> cont;
+		for (int i = 0; i < n; i++)
+		{
+			cont.push_back(contoursQuery[i]);
+		}
+		return cont;
 	}
 
 }

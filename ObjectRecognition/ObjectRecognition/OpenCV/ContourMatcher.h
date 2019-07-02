@@ -19,8 +19,8 @@ namespace cv
 	//typedef Size2i Size;
 }	
 
-typedef struct RenderStruct;
-typedef struct ContourMatchOut;
+struct RenderStruct;
+struct ContourMatchOut;
 
 
 class ContourMatcher
