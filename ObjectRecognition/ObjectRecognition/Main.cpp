@@ -61,8 +61,8 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
-	cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated2.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated2.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/chair1.jpg");
 
 	
@@ -81,13 +81,15 @@ int main(void)
 	//TEST FOR ROTATION
 	std::cout << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
 
-	//drwaing related
+
+	//drawing related
 	auto size = testImg.size();
 	cv::Mat drawing = cv::Mat::zeros(size.height * 2, size.width * 2, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
 	cv::Scalar color;
 	
 	std::vector<std::vector<cv::Point>> drawContVec;
 
+#pragma region TRANSLATECONTOURS
 	//translate render match cont
 	cv::Point2f massCentre;
 	float diagonalLength;
@@ -102,6 +104,8 @@ int main(void)
 	std::vector<cv::Point> imageContTrans(testResult2.lowestContourImage.size());
 	ImageOperations::TranslateContourToPoint(testResult2.lowestContourImage, imageContTrans, cv::Point(size.width / 2, size.height / 2), massCentre2, diagonalLength2);
 
+#pragma endregion
+
 	//just for drawing
 	drawContVec.push_back(renderContTrans);
 	drawContVec.push_back(imageContTrans);
@@ -109,14 +113,19 @@ int main(void)
 	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,255,255),2);
 
 
+
+#pragma region MINAREARECT
 	//ROTATED RECT TEST
-	double angle1, angleRect1, angle2, angleRect2;
-	ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
-	std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
+	//double angle1, angleRect1, angle2, angleRect2;
+	//ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
+	//std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
+	//
+	//ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
+	//std::cout << "IMAGE CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
 
-	ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
-	std::cout << "IMAGE CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
+#pragma endregion
 
+#pragma region DISTANCE
 	//DISTANCE TEST
 	//NEED SCALING
 	//cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
@@ -146,6 +155,8 @@ int main(void)
 	//cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 0));
 
 	//std::cout << lowestDistance << " with rotation: " << lowestID * 6 << std::endl;
+
+#pragma endregion
 
 	cv::imshow("CONTOURS TRANSLATED", drawing);
 
