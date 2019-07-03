@@ -7,10 +7,9 @@
 #include <opencv2/imgproc.hpp>
 
 //rotation test includes
-#include <opencv2/shape/shape_distance.hpp>
-#include <opencv2/shape/hist_cost.hpp>
-#include <opencv2/shape/shape_transformer.hpp>
-
+#include <opencv2\opencv.hpp>
+#include "opencv2/shape.hpp"
+#include "opencv2\opencv_modules.hpp"
 
 
 #include "OpenGL/OGLRenderer.h"
@@ -83,7 +82,7 @@ int main(void)
 
 	//drwaing related
 	auto size = testImg.size();
-	cv::Mat drawing = cv::Mat::zeros(size.height, size.width , CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
+	cv::Mat drawing = cv::Mat::zeros(size.height * 2, size.width * 2, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
 	cv::Scalar color;
 	
 	std::vector<std::vector<cv::Point>> drawContVec;
@@ -106,26 +105,39 @@ int main(void)
 	drawContVec.push_back(renderContTrans);
 	drawContVec.push_back(imageContTrans);
 	cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0,255,0));
-	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(255,0,0));
+	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,255,255),2);
+
+	//DISTANCE TEST
+	//NEED SCALING
+	//cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
+
+	//float lowestDistance = FLT_MAX;
+	//int lowestID = 0;
+	//for (size_t i = 0; i < 60; i++)
+	//{
+	//	std::vector<cv::Point> rotated;
+	//	ImageOperations::RotateContour(renderContTrans, rotated, 6 * i, cv::Point(size.width / 2, size.height / 2));
+
+	//	float dis = mysc->computeDistance(rotated, imageContTrans);
+	//	std::cout << dis << " | ";
+
+	//	if (dis <= lowestDistance)
+	//	{
+	//		lowestDistance = dis;
+	//		lowestID = i;
+	//	}
+	//}
+	//std::cout << std::endl;	
+
+	//std::vector<cv::Point> resultRot;
+	//ImageOperations::RotateContour(renderContTrans, resultRot, 6 * lowestID, cv::Point(size.width / 2, size.height / 2));
+	//
+	//drawContVec.push_back(resultRot);
+	//cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 0));
+
+	//std::cout << lowestDistance << " with rotation: " << lowestID * 6 << std::endl;
 
 	cv::imshow("CONTOURS TRANSLATED", drawing);
-
-	//result 
-	double result1 = cv::matchShapes(renderContTrans, imageContTrans, cv::CONTOURS_MATCH_I1, 0.0);
-	double result2 = cv::matchShapes(testResult2.lowestContourRender, testResult2.lowestContourImage, cv::CONTOURS_MATCH_I1, 0.0);
-
-	std::cout << result1 << std::endl << result2 << std::endl;
-
-	cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
-	//cv::Ptr <cv::ShapeContextDistanceExtractor> mysc;
-	//float dis = mysc->computeDistance(renderContTrans, imageContTrans);
-	//float dis2 = mysc->computeDistance(testResult2.lowestContourRender, testResult2.lowestContourImage);
-
-	//std::cout << dis << " , " << dis2 << std::endl;
-
-
-
-
 
 
 #pragma endregion
