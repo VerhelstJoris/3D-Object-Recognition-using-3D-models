@@ -135,6 +135,31 @@ namespace ImageOperations //optional, just for clarity
 		return;
 	}
 
+	static double distanceBtwPoints(const cv::Point2f &point1, const cv::Point2f &point2)
+	{
+		//simple euclidean distance
+		double xDiff = point1.x - point2.x;
+		double yDiff = point1.y - point2.y;
+
+		return std::sqrt((xDiff * xDiff) + (yDiff * yDiff));
+	}
+
+	static void AngleContour(const std::vector<cv::Point>& contour,double& angle, double& rectAngle)
+	{
+		cv::RotatedRect _minAreaRect;
+
+		_minAreaRect = cv::minAreaRect(contour);
+		cv::Point2f pts[4];
+		_minAreaRect.points(pts);
+
+		double dist0 = ImageOperations::distanceBtwPoints(pts[0], pts[1]);
+		double dist1 = ImageOperations::distanceBtwPoints(pts[1], pts[2]);
+
+		//   if (dist0 > dist1 * 4)
+		rectAngle = _minAreaRect.angle;
+		angle = atan2(pts[0].y - pts[1].y, pts[0].x - pts[1].x) * 180.0 / CV_PI;
+	}
+
 	static cv::Point RotatePoint(const cv::Mat &image, const cv::Point &point)
 	{
 		cv::Point2f rotated;

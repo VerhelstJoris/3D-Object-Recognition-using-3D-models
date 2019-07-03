@@ -61,7 +61,8 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated2.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/chair1.jpg");
 
 	
@@ -106,6 +107,15 @@ int main(void)
 	drawContVec.push_back(imageContTrans);
 	cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0,255,0));
 	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,255,255),2);
+
+
+	//ROTATED RECT TEST
+	double angle1, angleRect1, angle2, angleRect2;
+	ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
+	std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
+
+	ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
+	std::cout << "IMAGE CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
 
 	//DISTANCE TEST
 	//NEED SCALING
