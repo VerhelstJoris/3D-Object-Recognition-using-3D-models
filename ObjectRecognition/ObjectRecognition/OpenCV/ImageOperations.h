@@ -250,42 +250,40 @@ namespace ImageOperations //optional, just for clarity
 		for (size_t i = 0; i < contour.size(); i++)
 		{
 			cv::Vec2f moveVec = { (float)contour[i].x - anchor.x , (float)contour[i].y - anchor.y };
-			//cv::Vec2f moveVec = { (float)contour[i].x - anchor.x , (float)contour[i].y - anchor.y };
 			moveVec *= (scaleAmount-1);
 			cv::Point newPoint = cv::Point(anchor.x + moveVec[0], anchor.y + moveVec[1]);
 			resultVec.push_back(newPoint);
-			//result[i] = newPoint;
 		}
 
 		result = resultVec;
 	}
 
-	static std::vector<cv::Point> simpleContour(std::vector<std::vector<cv::Point>> _contoursQuery, int n = 300)
+	static void simpleContour(const std::vector<cv::Point>& contour, std::vector<cv::Point>& result ,int n = 100)
 	{
-		std::vector<cv::Point> contoursQuery;
-		for (size_t border = 0; border < _contoursQuery.size(); border++)
+		std::vector<cv::Point> contourVec;
+
+		for (size_t p = 0; p < contour.size(); p++)
 		{
-			for (size_t p = 0; p < _contoursQuery[border].size(); p++)
-			{
-				contoursQuery.push_back(_contoursQuery[border][p]);
-			}
+			contourVec.push_back(contour[p]);
 		}
 
 		// In case actual number of points is less than n
 		int dummy = 0;
-		for (int add = (int)contoursQuery.size() - 1; add < n; add++)
+		for (int add = (int)contour.size() - 1; add < n; add++)
 		{
-			contoursQuery.push_back(contoursQuery[dummy++]); //adding dummy values
+			dummy = (dummy + 1) % contour.size();
+			contourVec.push_back(contour[dummy++]); //adding dummy values
 		}
 
 		// Uniformly sampling
-		random_shuffle(contoursQuery.begin(), contoursQuery.end());
+		random_shuffle(contourVec.begin(), contourVec.end());
 		std::vector<cv::Point> cont;
 		for (int i = 0; i < n; i++)
 		{
-			cont.push_back(contoursQuery[i]);
+			cont.push_back(contourVec[i]);
 		}
-		return cont;
+
+		result = cont;
 	}
 
 }

@@ -61,7 +61,7 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated2.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated2.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/chair1.jpg");
 
@@ -109,7 +109,7 @@ int main(void)
 	drawContVec.push_back(renderContTrans);
 	drawContVec.push_back(imageContTrans);
 	cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0,255,0));
-	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,255,255),2);
+	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,0,255),2);
 
 #pragma region MINAREARECT
 	//ROTATED RECT TEST
@@ -131,45 +131,49 @@ int main(void)
 	std::cout << "RENDER CONTOUR SIZE: " << minAreaRender.size.area() << std::endl;
 	std::cout << "IMAGE CONTOUR SIZE: " << minAreaImage.size.area() << std::endl;
 
-
 	//scale up
 	//float scaleAmount = minAreaRender.size.area()/ minAreaImage.size.area();
 	float scaleAmount = minAreaRender.size.width/ minAreaImage.size.width;
 	std::cout << "SCALE AMOUNT: " << scaleAmount << std::endl;
 
-	std::vector<cv::Point> scaledRenderContour;
+	std::vector<cv::Point> scaledRenderContour, renderContShuffled, imageContShuffled;
 	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(size.width / 2, size.height / 2),scaleAmount);
-	drawContVec.push_back(scaledRenderContour);
-	cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 255));
+
+	int lowestAmountOfPoints = std::min(scaledRenderContour.size(), imageContTrans.size());
+
+	//shuffle both contours for uniform sampling
+	ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, 100);
+	ImageOperations::simpleContour(imageContTrans, imageContShuffled, 100);
 
 	//DISTANCE TEST
-	//cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
+	cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
 
-	//float lowestDistance = FLT_MAX;
-	//int lowestID = 0;
-	//for (size_t i = 0; i < 60; i++)
-	//{
-	//	std::vector<cv::Point> rotated;
-	//	ImageOperations::RotateContour(renderContTrans, rotated, 6 * i, cv::Point(size.width / 2, size.height / 2));
+	float lowestDistance = FLT_MAX;
+	int lowestID = 0;
+	for (size_t i = 0; i < 60; i++)
+	{
+		std::vector<cv::Point> rotated;
+		ImageOperations::RotateContour(renderContShuffled, rotated, 6 * i, cv::Point(size.width / 2, size.height / 2));
 
-	//	float dis = mysc->computeDistance(rotated, imageContTrans);
-	//	std::cout << dis << " | ";
+		float dis = mysc->computeDistance(rotated, imageContShuffled);
+		std::cout << dis << " | ";
+		
+		if (dis <= lowestDistance)
+		{
+			lowestDistance = dis;
+			lowestID = i;
+		}
+	}
+	std::cout << std::endl;	
 
-	//	if (dis <= lowestDistance)
-	//	{
-	//		lowestDistance = dis;
-	//		lowestID = i;
-	//	}
-	//}
-	//std::cout << std::endl;	
+	std::cout << lowestDistance << " with rotation: " << lowestID * 6 << " at ID: " << lowestID << std::endl;
 
-	//std::vector<cv::Point> resultRot;
-	//ImageOperations::RotateContour(renderContTrans, resultRot, 6 * lowestID, cv::Point(size.width / 2, size.height / 2));
-	//
-	//drawContVec.push_back(resultRot);
-	//cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 0));
+	std::vector<cv::Point> resultRot;
+	ImageOperations::RotateContour(scaledRenderContour, resultRot, 6 * lowestID, cv::Point(size.width / 2, size.height / 2));
+	
+	drawContVec.push_back(resultRot);
+	cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 255));
 
-	//std::cout << lowestDistance << " with rotation: " << lowestID * 6 << std::endl;
 
 #pragma endregion
 
