@@ -251,7 +251,7 @@ namespace ImageOperations //optional, just for clarity
 		{
 			cv::Vec2f moveVec = { (float)contour[i].x - anchor.x , (float)contour[i].y - anchor.y };
 			//cv::Vec2f moveVec = { (float)contour[i].x - anchor.x , (float)contour[i].y - anchor.y };
-			moveVec *= scaleAmount;
+			moveVec *= (scaleAmount-1);
 			cv::Point newPoint = cv::Point(anchor.x + moveVec[0], anchor.y + moveVec[1]);
 			resultVec.push_back(newPoint);
 			//result[i] = newPoint;

@@ -81,7 +81,6 @@ int main(void)
 	//TEST FOR ROTATION
 	std::cout << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
 
-
 	//drawing related
 	auto size = testImg.size();
 	cv::Mat drawing = cv::Mat::zeros(size.height * 3, size.width * 3, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
@@ -132,8 +131,12 @@ int main(void)
 	std::cout << "RENDER CONTOUR SIZE: " << minAreaRender.size.area() << std::endl;
 	std::cout << "IMAGE CONTOUR SIZE: " << minAreaImage.size.area() << std::endl;
 
+
 	//scale up
-	float scaleAmount = minAreaRender.size.area()/ minAreaImage.size.area();
+	//float scaleAmount = minAreaRender.size.area()/ minAreaImage.size.area();
+	float scaleAmount = minAreaRender.size.width/ minAreaImage.size.width;
+	std::cout << "SCALE AMOUNT: " << scaleAmount << std::endl;
+
 	std::vector<cv::Point> scaledRenderContour;
 	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(size.width / 2, size.height / 2),scaleAmount);
 	drawContVec.push_back(scaledRenderContour);
