@@ -250,7 +250,7 @@ namespace ImageOperations //optional, just for clarity
 		for (size_t i = 0; i < contour.size(); i++)
 		{
 			cv::Vec2f moveVec = { (float)contour[i].x - anchor.x , (float)contour[i].y - anchor.y };
-			moveVec *= (scaleAmount-1);
+			moveVec *= (scaleAmount);
 			cv::Point newPoint = cv::Point(anchor.x + moveVec[0], anchor.y + moveVec[1]);
 			resultVec.push_back(newPoint);
 		}

@@ -83,7 +83,7 @@ int main(void)
 
 	//drawing related
 	auto size = testImg.size();
-	cv::Mat drawing = cv::Mat::zeros(size.height * 3, size.width * 3, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
+	cv::Mat drawing = cv::Mat::zeros(size.height , size.width , CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
 	cv::Scalar color;
 	
 	std::vector<std::vector<cv::Point>> drawContVec;
@@ -111,18 +111,11 @@ int main(void)
 	cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0,255,0));
 	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,0,255),2);
 
-#pragma region MINAREARECT
-	//ROTATED RECT TEST
-	//double angle1, angleRect1, angle2, angleRect2;
-	//ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
-	//std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
-	//
-	//ImageOperations::AngleContour(renderContTrans, angle1, angleRect1);
-	//std::cout << "IMAGE CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
-
-#pragma endregion
 
 #pragma region DISTANCE
+
+	std::cout << "=======================================" << std::endl << "DISTANCE CHECKS" << std::endl << std::endl;
+
 
 	cv::RotatedRect minAreaImage, minAreaRender;
 	minAreaImage = cv::minAreaRect(imageContTrans);
@@ -133,14 +126,14 @@ int main(void)
 
 	//scale up
 	//float scaleAmount = minAreaRender.size.area()/ minAreaImage.size.area();
-	float scaleAmount = minAreaRender.size.width/ minAreaImage.size.width;
+	//float scaleAmount = minAreaRender.size.width/ minAreaImage.size.width;
+	float scaleAmount = minAreaImage.size.width/ minAreaRender.size.width;
 	std::cout << "SCALE AMOUNT: " << scaleAmount << std::endl;
 
 	std::vector<cv::Point> scaledRenderContour, renderContShuffled, imageContShuffled;
 	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(size.width / 2, size.height / 2),scaleAmount);
 
-	int lowestAmountOfPoints = std::min(scaledRenderContour.size(), imageContTrans.size());
-
+	int highestAmountOfPoints = std::max(scaledRenderContour.size(), imageContTrans.size());
 	//shuffle both contours for uniform sampling
 	ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, 100);
 	ImageOperations::simpleContour(imageContTrans, imageContShuffled, 100);
@@ -174,6 +167,20 @@ int main(void)
 	drawContVec.push_back(resultRot);
 	cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 255));
 
+
+#pragma endregion
+
+#pragma region MINAREARECT
+	std::cout << "=======================================" << std::endl << "ROTATED RECT ANGLE" << std::endl << std::endl;
+
+
+	//ROTATED RECT TEST
+	double angle1, angleRect1, angle2, angleRect2;
+	ImageOperations::AngleContour(resultRot, angle1, angleRect1);
+	std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
+	
+	ImageOperations::AngleContour(imageContTrans, angle2, angleRect2);
+	std::cout << "IMAGE CONTOUR ANGLES: " << angle2 << ", " << angleRect2 << std::endl;
 
 #pragma endregion
 
