@@ -198,7 +198,8 @@ void OGLRenderer::Shutdown()
 
 	glfwTerminate();
 
-	std::cout << "SHUTTING DOWN RENDERER" << std::endl << std::endl;
+	std::cout << std::endl << "SHUTTING DOWN RENDERER" << std::endl << 
+		"==========================" << std::endl << std::endl;
 }
 
 void OGLRenderer::Run()

@@ -84,7 +84,7 @@ int main(void)
 
 	//drawing related
 	auto size = testImg.size();
-	cv::Mat drawing = cv::Mat::zeros(size.height * 2, size.width * 2, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
+	cv::Mat drawing = cv::Mat::zeros(size.height * 3, size.width * 3, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
 	cv::Scalar color;
 	
 	std::vector<std::vector<cv::Point>> drawContVec;
@@ -112,8 +112,6 @@ int main(void)
 	cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0,255,0));
 	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,255,255),2);
 
-
-
 #pragma region MINAREARECT
 	//ROTATED RECT TEST
 	//double angle1, angleRect1, angle2, angleRect2;
@@ -126,8 +124,22 @@ int main(void)
 #pragma endregion
 
 #pragma region DISTANCE
+
+	cv::RotatedRect minAreaImage, minAreaRender;
+	minAreaImage = cv::minAreaRect(imageContTrans);
+	minAreaRender = cv::minAreaRect(renderContTrans);
+
+	std::cout << "RENDER CONTOUR SIZE: " << minAreaRender.size.area() << std::endl;
+	std::cout << "IMAGE CONTOUR SIZE: " << minAreaImage.size.area() << std::endl;
+
+	//scale up
+	float scaleAmount = minAreaRender.size.area()/ minAreaImage.size.area();
+	std::vector<cv::Point> scaledRenderContour;
+	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(size.width / 2, size.height / 2),scaleAmount);
+	drawContVec.push_back(scaledRenderContour);
+	cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 255));
+
 	//DISTANCE TEST
-	//NEED SCALING
 	//cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
 
 	//float lowestDistance = FLT_MAX;

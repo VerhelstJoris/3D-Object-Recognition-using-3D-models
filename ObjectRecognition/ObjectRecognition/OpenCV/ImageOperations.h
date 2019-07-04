@@ -53,7 +53,7 @@ namespace ImageOperations //optional, just for clarity
 		double area = cv::contourArea(contour);
 		double arc = cv::arcLength(contour, true);
 
-		double squareness = 4 * 3.14159f * area / (arc * arc);
+		double squareness = 4 * CV_PI * area / (arc * arc);
 
 		return squareness;
 	}
@@ -155,7 +155,6 @@ namespace ImageOperations //optional, just for clarity
 		double dist0 = ImageOperations::distanceBtwPoints(pts[0], pts[1]);
 		double dist1 = ImageOperations::distanceBtwPoints(pts[1], pts[2]);
 
-		//   if (dist0 > dist1 * 4)
 		rectAngle = _minAreaRect.angle;
 		angle = atan2(pts[0].y - pts[1].y, pts[0].x - pts[1].x) * 180.0 / CV_PI;
 	}
@@ -209,7 +208,7 @@ namespace ImageOperations //optional, just for clarity
 		return 1;
 	}
 
-	static void TranslateContourToPoint(std::vector<cv::Point> contour, std::vector<cv::Point>& result, cv::Point endPoint, cv::Point2f &massCentre, float& diagonalLength)
+	static void TranslateContourToPoint(const std::vector<cv::Point>& contour, std::vector<cv::Point>& result, cv::Point endPoint, cv::Point2f &massCentre, float& diagonalLength)
 	{
 		ImageOperations::FindBlobs(contour, massCentre, diagonalLength);
 
@@ -225,7 +224,7 @@ namespace ImageOperations //optional, just for clarity
 	}
 
 	//rotate a single contour around a centerpoint
-	static bool RotateContour(std::vector<cv::Point> contour, std::vector<cv::Point> &result, float angle, cv::Point2f center)
+	static bool RotateContour(const std::vector<cv::Point>& contour, std::vector<cv::Point> &result, float angle, cv::Point2f center)
 	{
 		if (contour.size() == 0)
 		{
@@ -242,6 +241,23 @@ namespace ImageOperations //optional, just for clarity
 		}
 		
 		return true;
+	}
+
+	static void ScaleContour(const std::vector<cv::Point>& contour, std::vector<cv::Point>& result, cv::Point2f anchor, float scaleAmount)
+	{
+		std::vector<cv::Point> resultVec;
+
+		for (size_t i = 0; i < contour.size(); i++)
+		{
+			cv::Vec2f moveVec = { (float)contour[i].x - anchor.x , (float)contour[i].y - anchor.y };
+			//cv::Vec2f moveVec = { (float)contour[i].x - anchor.x , (float)contour[i].y - anchor.y };
+			moveVec *= scaleAmount;
+			cv::Point newPoint = cv::Point(anchor.x + moveVec[0], anchor.y + moveVec[1]);
+			resultVec.push_back(newPoint);
+			//result[i] = newPoint;
+		}
+
+		result = resultVec;
 	}
 
 	static std::vector<cv::Point> simpleContour(std::vector<std::vector<cv::Point>> _contoursQuery, int n = 300)
