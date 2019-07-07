@@ -245,6 +245,7 @@ namespace ImageOperations //optional, just for clarity
 
 	static void ScaleContour(const std::vector<cv::Point>& contour, std::vector<cv::Point>& result, cv::Point2f anchor, float scaleAmount)
 	{
+		//scale separately for X and Y??
 		std::vector<cv::Point> resultVec;
 
 		for (size_t i = 0; i < contour.size(); i++)

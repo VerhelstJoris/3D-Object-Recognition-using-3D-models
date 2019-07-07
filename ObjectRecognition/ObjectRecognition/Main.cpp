@@ -61,9 +61,8 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated2.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated2.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/chair1.jpg");
 
 	
 	// Shutdown and release the RENDERER object.
@@ -112,26 +111,42 @@ int main(void)
 	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,0,255),2);
 
 
-#pragma region DISTANCE
-
-	std::cout << "=======================================" << std::endl << "DISTANCE CHECKS" << std::endl << std::endl;
-
+#pragma region SCALE
 
 	cv::RotatedRect minAreaImage, minAreaRender;
 	minAreaImage = cv::minAreaRect(imageContTrans);
 	minAreaRender = cv::minAreaRect(renderContTrans);
 
-	std::cout << "RENDER CONTOUR SIZE: " << minAreaRender.size.area() << std::endl;
-	std::cout << "IMAGE CONTOUR SIZE: " << minAreaImage.size.area() << std::endl;
-
 	//scale up
 	//float scaleAmount = minAreaRender.size.area()/ minAreaImage.size.area();
-	//float scaleAmount = minAreaRender.size.width/ minAreaImage.size.width;
-	float scaleAmount = minAreaImage.size.width/ minAreaRender.size.width;
+
+	//TO-DO
+	//scale amount does not work if one of them is sideways
+	//float scaleAmount = minAreaImage.size.width/ minAreaRender.size.width;
+
+	float largestElemImg, largestElemRender;
+	largestElemImg = std::max(minAreaImage.size.width, minAreaImage.size.height);
+	largestElemRender = std::max(minAreaRender.size.width, minAreaRender.size.height);
+
+	std::cout << "IMAGE WIDTH: " << minAreaImage.size.width << " HEIGHT: " << minAreaImage.size.height << std::endl;
+	std::cout << "RENDER WIDTH: " << minAreaRender.size.width << " HEIGHT: " << minAreaRender.size.height << std::endl;
+
+	float scaleAmount = largestElemImg / largestElemRender;
 	std::cout << "SCALE AMOUNT: " << scaleAmount << std::endl;
 
 	std::vector<cv::Point> scaledRenderContour, renderContShuffled, imageContShuffled;
-	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(size.width / 2, size.height / 2),scaleAmount);
+
+
+	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(size.width / 2, size.height / 2), scaleAmount);
+
+
+#pragma endregion
+
+#pragma region DISTANCE
+
+	std::cout << "=======================================" << std::endl << "DISTANCE CHECKS" << std::endl << std::endl;
+
+	
 
 	int highestAmountOfPoints = std::max(scaledRenderContour.size(), imageContTrans.size());
 	//shuffle both contours for uniform sampling
