@@ -60,8 +60,12 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
+	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated2.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
-	cv::Mat testImg = cv::imread("../Resources/Test/test3.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated4.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated5.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test3.jpg");
 
 	
 	// Shutdown and release the RENDERER object.
@@ -72,15 +76,14 @@ int main(void)
 
 	//CONTOUR MATCHING TEST
 	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg);
-	imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult2.lowestRenderID));
+	//imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult2.lowestRenderID));
 	
 #pragma region ROTATION
 	
 	//TEST FOR ROTATION
-	std::cout << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
+	std::cout << std::endl << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
 
 	auto size = testImg.size();
-
 
 	//drawing related
 	cv::Mat drawing = cv::Mat::zeros(size.height , size.width , CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
@@ -111,6 +114,8 @@ int main(void)
 
 
 #pragma region SCALE
+	bool imageSideways = false;
+
 	cv::RotatedRect minAreaImage, minAreaRender;
 	minAreaImage = cv::minAreaRect(imageContTrans);
 	minAreaRender = cv::minAreaRect(renderContTrans);
@@ -135,40 +140,41 @@ int main(void)
 
 #pragma region DISTANCE
 
-	std::cout << "=======================================" << std::endl << "DISTANCE CHECKS" << std::endl << std::endl;
+	std::cout << std::endl << "=======================================" << std::endl << "DISTANCE CHECKS" << std::endl << std::endl;
 
 	
 
 	int highestAmountOfPoints = std::max(scaledRenderContour.size(), imageContTrans.size());
 	//shuffle both contours for uniform sampling
-	ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, 100);
-	ImageOperations::simpleContour(imageContTrans, imageContShuffled, 100);
+	ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, highestAmountOfPoints);
+	ImageOperations::simpleContour(imageContTrans, imageContShuffled, highestAmountOfPoints);
 
 	//DISTANCE TEST
 	cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
 
-	float lowestDistance = FLT_MAX;
-	int lowestID = 0;
-	for (size_t i = 0; i < 60; i++)
-	{
-		std::vector<cv::Point> rotated;
-		ImageOperations::RotateContour(renderContShuffled, rotated, 6 * i, cv::Point(size.width / 2, size.height / 2));
-
-		float dis = mysc->computeDistance(rotated, imageContShuffled);
-		std::cout << dis << " | ";
-		
-		if (dis <= lowestDistance)
-		{
-			lowestDistance = dis;
-			lowestID = i;
-		}
-
-	}
-	std::cout << std::endl;	
-
-
-	float resultingRot = lowestID * 6.0;
-	std::cout << lowestDistance << " with rotation: " << resultingRot << " at ID: " << lowestID << std::endl;
+	//float lowestDistance = FLT_MAX;
+	//int lowestID = 0;
+	//double angle = 1.0;
+	//for (size_t i = 0; i < 360.0/ angle; i++)
+	//{
+	//	std::vector<cv::Point> rotated;
+	//	ImageOperations::RotateContour(renderContShuffled, rotated, angle * i, cv::Point(size.width / 2, size.height / 2));
+	//	
+	//	float dis = mysc->computeDistance(rotated, imageContShuffled);
+	//	std::cout << dis << " | ";
+	//	
+	//	if (dis <= lowestDistance)
+	//	{
+	//		lowestDistance = dis;
+	//		lowestID = i;
+	//	}
+	//
+	//}
+	//std::cout << std::endl;	
+	//
+	//
+	//double resultingRot = lowestID * angle;
+	//std::cout << lowestDistance << " with rotation: " << resultingRot << " at ID: " << lowestID << std::endl;
 
 #pragma endregion
 
@@ -176,26 +182,49 @@ int main(void)
 	std::cout << "=======================================" << std::endl << "ROTATED RECT ANGLE" << std::endl << std::endl;
 
 	//fmod is % operator
-	float cappedRot = resultingRot - std::fmod(resultingRot, 90);
+	//double cappedRot = resultingRot - std::fmod(resultingRot, 90.0);
+
+	//std::cout << resultingRot << "-> " << cappedRot << std::endl;
 
 	//ROTATED RECT TEST
 	double angle1, angleRect1, angle2, angleRect2;
 
-	std::vector<cv::Point> resultRot;
-	ImageOperations::RotateContour(scaledRenderContour, resultRot, resultingRot, cv::Point(size.width / 2, size.height / 2));
+	//std::vector<cv::Point> resultRot;
+	//ImageOperations::RotateContour(scaledRenderContour, resultRot, resultingRot, cv::Point(size.width / 2, size.height / 2));
 
-
-	ImageOperations::AngleContour(resultRot, angle1, angleRect1);
-	std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
+	//ImageOperations::AngleContour(resultRot, angle1, angleRect1);
+	//std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
 	
 	ImageOperations::AngleContour(imageContTrans, angle2, angleRect2);
 	std::cout << "IMAGE CONTOUR ANGLES: " << angle2 << ", " << angleRect2 << std::endl;
 
-	//FINAL CHANGES
-	cappedRot += angle2;
+	//image angle should depend on whether or not it's sideways or not
+	//cappedRot += angle2;
+	//cappedRot = resultingRot;
+
+	float lowestDistance = FLT_MAX;
+	int lowestID = 0;
+	for (size_t i = 0; i < 4; i++)
+	{
+		std::vector<cv::Point> rotated;
+		ImageOperations::RotateContour(renderContShuffled, rotated, angle2 + (i*90), cv::Point(size.width / 2, size.height / 2));
+
+		float dis = mysc->computeDistance(rotated, imageContShuffled);
+		std::cout << dis << " | ";
+
+		if (dis <= lowestDistance)
+		{
+			lowestDistance = dis;
+			lowestID = i;
+		}
+	}
+	double angle = angle2 + (lowestID * 90);
+
+	std::cout << "FINAL ANGLE: " << angle << std::endl;
+
 	std::vector<cv::Point> finalRot;
 
-	ImageOperations::RotateContour(scaledRenderContour, finalRot, cappedRot, cv::Point(size.width / 2, size.height / 2));
+	ImageOperations::RotateContour(scaledRenderContour, finalRot, angle, cv::Point(size.width / 2, size.height / 2));
 
 	//remove later
 	drawContVec.push_back(finalRot);
@@ -223,7 +252,7 @@ int main(void)
 	{
 		int id = testResult2.lowestRenderID;
 		DisplayRendererObject->SwitchToDisplayMode(drawing);
-		DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + cappedRot });
+		DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
 		DisplayRendererObject->Run();
 	}
 	else
@@ -236,7 +265,10 @@ int main(void)
 	//SHUTDOWN
 	//====================
 	cv::waitKey();
+	std::cout << "SHUTTING DOWN" << std::endl;
+
 	cv::destroyAllWindows();
+
 
 	//Shutdown and release the DISPLAY object.
 	DisplayRendererObject->Shutdown();

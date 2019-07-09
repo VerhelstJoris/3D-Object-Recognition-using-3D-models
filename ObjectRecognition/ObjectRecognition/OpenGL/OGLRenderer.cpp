@@ -31,6 +31,10 @@ OGLRenderer::~OGLRenderer()
 
 bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int windowHeight)
 {
+
+	std::cout << std::endl << "=======================================" << std::endl << "INITIALIZING RENDERER" << std::endl << std::endl;
+
+
 	#pragma region WINDOW_SETUP
 	m_WindowWidth= windowWidth;
 	m_WindowHeight = windowHeight;
@@ -418,12 +422,12 @@ void OGLRenderer::ProcessUserInput()
 
 	if (m_mode == RENDERER_MODE::DISPLAY)
 	{
-		//TEST ROTATION
-		if (glfwGetKey(m_window, GLFW_KEY_P) == GLFW_PRESS)
-		{
-			m_Orientation.z += 6 * 0.0174532925f;
-			std::cout << m_Orientation.z << std::endl;
-		}
+		////TEST ROTATION
+		//if (glfwGetKey(m_window, GLFW_KEY_P) == GLFW_PRESS)
+		//{
+		//	m_Orientation.z += 6 * 0.0174532925f;
+		//	std::cout << m_Orientation.z << std::endl;
+		//}
 
 	}
 
@@ -504,8 +508,8 @@ void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
 }
 
 
-void OGLRenderer::SetModelOrientation(glm::vec3 rot)
+void OGLRenderer::SetModelOrientation(glm::vec3 rotDeg)
 { 
-	m_Orientation = glm::vec3(rot.x, rot.y, - rot.z); 
+	m_Orientation = glm::vec3(rotDeg.x , rotDeg.y , -rotDeg.z);
 	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
 };
