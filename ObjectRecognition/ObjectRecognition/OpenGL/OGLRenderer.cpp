@@ -168,6 +168,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 	#pragma endregion
 
+
 	if (m_mode == RENDERER_MODE::CAMERAMOVE)
 	{
 		std::cout << std::endl << std::endl;
@@ -264,8 +265,8 @@ void OGLRenderer::Run()
 			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian			
 		}
 		// Build the model matrix
-		glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
-		//glm::mat4 RotationMatrix = glm::eulerAngleXYZ(m_Orientation.x, m_Orientation.y, m_Orientation.z);
+		//glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
+		glm::mat4 RotationMatrix = glm::eulerAngleZYX(m_Orientation.z, m_Orientation.y, m_Orientation.x);
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
 		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1,1,1));			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
@@ -421,6 +422,7 @@ void OGLRenderer::ProcessUserInput()
 		if (glfwGetKey(m_window, GLFW_KEY_P) == GLFW_PRESS)
 		{
 			m_Orientation.z += 6 * 0.0174532925f;
+			std::cout << m_Orientation.z << std::endl;
 		}
 
 	}
@@ -500,3 +502,10 @@ void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
 
 	ConvertMatToTexture(imageToConvert, m_MatTex);
 }
+
+
+void OGLRenderer::SetModelOrientation(glm::vec3 rot)
+{ 
+	m_Orientation = glm::vec3(rot.x, rot.y, - rot.z); 
+	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
+};

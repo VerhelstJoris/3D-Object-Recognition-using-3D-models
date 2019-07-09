@@ -44,7 +44,6 @@ int main(void)
 
 	//initialize the renderer
 	result = ContourRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", 800 , 600);
-	//result = ContourRendererObject->Initialize("../Resources/Test/Chair.obj", 800 , 600);
 	if (result)
 	{
 		ContourRendererObject->Run();
@@ -61,8 +60,8 @@ int main(void)
 	
 	//OPENCV
 	//==================================================================
-	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test1_rotated2.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/test3.jpg");
 
 	
 	// Shutdown and release the RENDERER object.
@@ -80,8 +79,10 @@ int main(void)
 	//TEST FOR ROTATION
 	std::cout << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
 
-	//drawing related
 	auto size = testImg.size();
+
+
+	//drawing related
 	cv::Mat drawing = cv::Mat::zeros(size.height , size.width , CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
 	cv::Scalar color;
 	
@@ -105,24 +106,14 @@ int main(void)
 #pragma endregion
 
 	//just for drawing
-	drawContVec.push_back(renderContTrans);
 	drawContVec.push_back(imageContTrans);
 	cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0,255,0));
-	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0,0,255),2);
 
 
 #pragma region SCALE
-
 	cv::RotatedRect minAreaImage, minAreaRender;
 	minAreaImage = cv::minAreaRect(imageContTrans);
 	minAreaRender = cv::minAreaRect(renderContTrans);
-
-	//scale up
-	//float scaleAmount = minAreaRender.size.area()/ minAreaImage.size.area();
-
-	//TO-DO
-	//scale amount does not work if one of them is sideways
-	//float scaleAmount = minAreaImage.size.width/ minAreaRender.size.width;
 
 	float largestElemImg, largestElemRender;
 	largestElemImg = std::max(minAreaImage.size.width, minAreaImage.size.height);
@@ -171,35 +162,47 @@ int main(void)
 			lowestDistance = dis;
 			lowestID = i;
 		}
+
 	}
 	std::cout << std::endl;	
 
-	std::cout << lowestDistance << " with rotation: " << lowestID * 6 << " at ID: " << lowestID << std::endl;
 
-	std::vector<cv::Point> resultRot;
-	ImageOperations::RotateContour(scaledRenderContour, resultRot, 6 * lowestID, cv::Point(size.width / 2, size.height / 2));
-	
-	drawContVec.push_back(resultRot);
-	cv::drawContours(drawing, drawContVec, 2, cv::Scalar(255, 255, 255));
-
+	float resultingRot = lowestID * 6.0;
+	std::cout << lowestDistance << " with rotation: " << resultingRot << " at ID: " << lowestID << std::endl;
 
 #pragma endregion
 
 #pragma region MINAREARECT
 	std::cout << "=======================================" << std::endl << "ROTATED RECT ANGLE" << std::endl << std::endl;
 
+	//fmod is % operator
+	float cappedRot = resultingRot - std::fmod(resultingRot, 90);
 
 	//ROTATED RECT TEST
 	double angle1, angleRect1, angle2, angleRect2;
+
+	std::vector<cv::Point> resultRot;
+	ImageOperations::RotateContour(scaledRenderContour, resultRot, resultingRot, cv::Point(size.width / 2, size.height / 2));
+
+
 	ImageOperations::AngleContour(resultRot, angle1, angleRect1);
 	std::cout << "RENDER CONTOUR ANGLES: " << angle1 << ", " << angleRect1 << std::endl;
 	
 	ImageOperations::AngleContour(imageContTrans, angle2, angleRect2);
 	std::cout << "IMAGE CONTOUR ANGLES: " << angle2 << ", " << angleRect2 << std::endl;
 
+	//FINAL CHANGES
+	cappedRot += angle2;
+	std::vector<cv::Point> finalRot;
+
+	ImageOperations::RotateContour(scaledRenderContour, finalRot, cappedRot, cv::Point(size.width / 2, size.height / 2));
+
+	//remove later
+	drawContVec.push_back(finalRot);
+	cv::drawContours(drawing, drawContVec, 1, cv::Scalar(255, 255, 255));
+
 #pragma endregion
 
-	cv::imshow("CONTOURS TRANSLATED", drawing);
 
 
 #pragma endregion
@@ -208,26 +211,26 @@ int main(void)
 #pragma region DISPLAY
 	//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
 	//create new object instead of reusing because resizing the window at runtime isn't easy
-	//DisplayRendererObject = new OGLRenderer;
-	//if (!DisplayRendererObject)
-	//{
-	//	std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
-	//	return 0;
-	//}
-	//               
-	//result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg.size().width, testImg.size().height);
-	//if (result)
-	//{
-	//	int id = testResult2.lowestRenderID;
-	//	DisplayRendererObject->SwitchToDisplayMode(testImg);
-	//	DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + finalRot });
-	//	DisplayRendererObject->Run();
-	//}
-	//else
-	//{
-	//	std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
-	//	return 0;
-	//}
+	DisplayRendererObject = new OGLRenderer;
+	if (!DisplayRendererObject)
+	{
+		std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
+		return 0;
+	}
+	               
+	result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg.size().width, testImg.size().height);
+	if (result)
+	{
+		int id = testResult2.lowestRenderID;
+		DisplayRendererObject->SwitchToDisplayMode(drawing);
+		DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + cappedRot });
+		DisplayRendererObject->Run();
+	}
+	else
+	{
+		std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
+		return 0;
+	}
 
 
 	//SHUTDOWN
@@ -235,10 +238,10 @@ int main(void)
 	cv::waitKey();
 	cv::destroyAllWindows();
 
-	// Shutdown and release the DISPLAY object.
-	//DisplayRendererObject->Shutdown();
-	//delete DisplayRendererObject;
-	//DisplayRendererObject = 0;
+	//Shutdown and release the DISPLAY object.
+	DisplayRendererObject->Shutdown();
+	delete DisplayRendererObject;
+	DisplayRendererObject = 0;
 
 #pragma endregion
 

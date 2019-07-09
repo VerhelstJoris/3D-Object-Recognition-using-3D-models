@@ -31,7 +31,7 @@ public:
 	void Run();
 
 	void SwitchToDisplayMode(cv::Mat imageToConvert);
-	void SetModelOrientation(glm::vec3 rot) { m_Orientation = rot; };
+	void SetModelOrientation(glm::vec3 rot);
 
 	std::vector<RenderStruct> GetScreenRenders() { return m_renders; };
 
