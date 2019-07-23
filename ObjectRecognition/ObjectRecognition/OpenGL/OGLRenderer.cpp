@@ -274,7 +274,8 @@ void OGLRenderer::Run()
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
 		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1,1,1));			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
-	
+		ModelMatrix = glm::scale(ModelMatrix, m_Scale);						//SCALE AGAIN
+
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 	
 		// Send our transformation to the currently bound shader, 
@@ -511,5 +512,11 @@ void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
 void OGLRenderer::SetModelOrientation(glm::vec3 rotDeg)
 { 
 	m_Orientation = glm::vec3(rotDeg.x , rotDeg.y , -rotDeg.z);
+	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
+};
+
+void OGLRenderer::SetModelScale(glm::vec3 scaleVec)
+{
+	m_Scale = glm::vec3(scaleVec.x, scaleVec.y, scaleVec.z);
 	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
 };

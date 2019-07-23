@@ -32,6 +32,7 @@ public:
 
 	void SwitchToDisplayMode(cv::Mat imageToConvert);
 	void SetModelOrientation(glm::vec3 rotDeg);
+	void SetModelScale(glm::vec3 scaleVec);
 
 	std::vector<RenderStruct> GetScreenRenders() { return m_renders; };
 
@@ -57,7 +58,8 @@ private:
 	float m_cameraPosX=0.0f, m_cameraPosY=0.0f, m_cameraPosZ=7.0f;
 
 	//orientation of the object
-	glm::vec3 m_Orientation = glm::vec3(0.0f, 0.0f, 0.0f);;
+	glm::vec3 m_Orientation = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 m_Scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	const float m_angleDifferenceDegrees = 6.0f;
 	const int m_amountOfRowsToRender = 1;

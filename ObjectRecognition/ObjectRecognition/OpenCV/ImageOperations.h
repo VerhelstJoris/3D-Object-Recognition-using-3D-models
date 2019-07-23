@@ -1,6 +1,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/photo.hpp>
+#include <opencv2/highgui.hpp>	//for test cv::imshow
 
 
 struct RenderStruct
@@ -69,9 +70,9 @@ namespace ImageOperations //optional, just for clarity
 	{
 		cv::Mat temp1 , temp2;
 		std::vector<std::vector<cv::Point>> contours;
-		//temp1 = image;
+		temp1 = image;
 
-		cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
+		//cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
 		temp2 = ColorReduce(temp1, 2);
 
 		cv::cvtColor(temp2, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
@@ -85,12 +86,7 @@ namespace ImageOperations //optional, just for clarity
 		//blur = cv2.medianBlur(thresh, 7)
 		//img2, contours, hierarchy = cv2.findContours(~blur, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-
 		cv::findContours(temp1, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-
-
-		//paste together contours that are on the same level???
-
 
 		//remove small contours
 		float maxSize = image.size().width * image.size().height / 400.0f;
@@ -109,6 +105,21 @@ namespace ImageOperations //optional, just for clarity
 				i++;
 			}
 		}
+
+
+		//DRAW THE CONTOURS
+		cv::Mat drawing = cv::Mat::zeros(image.size().height, image.size().width, CV_8UC3);
+
+		//paste together contours that are on the same level???
+		for (size_t i = 0; i < contours.size(); i++)
+		{
+			cv::RNG rng(12345);
+			cv::Scalar color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+			cv::drawContours(drawing, contours, i, color, 1, 8, hierarchyResult, 0, cv::Point());
+
+		}
+
+		cv::imshow("IMAGE CONTOURS", drawing);
 
 		result = contours;
 
