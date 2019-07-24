@@ -511,7 +511,7 @@ void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
 
 void OGLRenderer::SetModelOrientation(glm::vec3 rotDeg)
 { 
-	m_Orientation = glm::vec3(rotDeg.x , rotDeg.y , -rotDeg.z);
+	m_Orientation = glm::vec3(rotDeg.x , rotDeg.y , rotDeg.z);
 	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
 };
 

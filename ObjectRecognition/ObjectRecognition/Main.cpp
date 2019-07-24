@@ -62,14 +62,18 @@ int main(void)
 	//OPENCV
 	//==================================================================
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated2.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_scale.jpg");
 	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated4.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated5.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test3.jpg");
 	//FINAL IMAGE
 	//cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
 
+	if (!testImg.data)
+	{
+		std::cout << "FAILED TO LOAD IN IMAGE" << std::endl;
+	}
 	
 	// Shutdown and release the RENDERER object.
 	ContourRendererObject->Shutdown();
