@@ -16,6 +16,7 @@
 #include "OpenCV/ContourMatcher.h"
 
 #include "OpenCV/ImageOperations.h"
+#include "OpenGL/OGLHelperFunctions.h"
 
 const float DEG2RAD = 0.0174532925f;
 const float RAD2DEG = 1/0.0174532925f;
@@ -44,7 +45,7 @@ int main(void)
 	}
 
 	//initialize the renderer
-	result = ContourRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", 800 , 600);
+	result = ContourRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", 800 , 600, RENDERER_MODE::CAMERAMOVE);
 	if (result)
 	{
 		ContourRendererObject->Run();
@@ -90,28 +91,28 @@ int main(void)
 	//TEST FOR ROTATION
 	std::cout << std::endl << "=======================================" << std::endl << "ROTATION TEST" << std::endl << std::endl;
 
-	auto size = testImg.size();
+	auto imgSize = testImg.size();
 
 	//drawing related
-	cv::Mat drawing = cv::Mat::zeros(size.height *2 , size.width  *2, CV_8UC3);	//create a mat the size of the screenshot (contour img has the same size)
+	cv::Mat drawing = cv::Mat::zeros(imgSize.height *2 , imgSize.width  *2, CV_8UC3);	//create a mat the imgSize of the screenshot (contour img has the same imgSize)
 	cv::Scalar color;
 	
 	std::vector<std::vector<cv::Point>> drawContVec;
 
 #pragma region TRANSLATECONTOURS
 	//translate render match cont
-	cv::Point2f massCentre;
-	float diagonalLength;
+	cv::Point2f massCentreRenderCont;
+	float diagonalLengthRenderCont;
 
 	std::vector<cv::Point> renderContTrans(testResult2.lowestContourRender.size());
-	ImageOperations::TranslateContourToPoint(testResult2.lowestContourRender, renderContTrans, cv::Point(size.width/2,size.height/2), massCentre,diagonalLength);
+	ImageOperations::TranslateContourToPoint(testResult2.lowestContourRender, renderContTrans, cv::Point(imgSize.width/2,imgSize.height/2), massCentreRenderCont, diagonalLengthRenderCont);
 
 	//translate image cont
-	cv::Point2f massCentre2;
-	float diagonalLength2;
+	cv::Point2f massCentreImageCont;
+	float diagonalLengthImageCont;
 
 	std::vector<cv::Point> imageContTrans(testResult2.lowestContourImage.size());
-	ImageOperations::TranslateContourToPoint(testResult2.lowestContourImage, imageContTrans, cv::Point(size.width / 2, size.height / 2), massCentre2, diagonalLength2);
+	ImageOperations::TranslateContourToPoint(testResult2.lowestContourImage, imageContTrans, cv::Point(imgSize.width / 2, imgSize.height / 2), massCentreImageCont, diagonalLengthImageCont);
 
 #pragma endregion
 
@@ -140,7 +141,7 @@ int main(void)
 	std::vector<cv::Point> scaledRenderContour, renderContShuffled, imageContShuffled;
 
 
-	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(size.width / 2, size.height / 2), scaleAmount);
+	ImageOperations::ScaleContour(renderContTrans, scaledRenderContour, cv::Point(imgSize.width / 2, imgSize.height / 2), scaleAmount);
 
 
 #pragma endregion
@@ -174,7 +175,7 @@ int main(void)
 	for (size_t i = 0; i < 4; i++)
 	{
 		std::vector<cv::Point> rotated;
-		ImageOperations::RotateContour(renderContShuffled, rotated, imageAngle + (i*90), cv::Point(size.width / 2, size.height / 2));
+		ImageOperations::RotateContour(renderContShuffled, rotated, imageAngle + (i*90), cv::Point(imgSize.width / 2, imgSize.height / 2));
 
 		float dis = mysc->computeDistance(rotated, imageContShuffled);
 		std::cout << dis << " | ";
@@ -191,7 +192,7 @@ int main(void)
 
 	std::vector<cv::Point> finalRot;
 
-	ImageOperations::RotateContour(scaledRenderContour, finalRot, angle, cv::Point(size.width / 2, size.height / 2));
+	ImageOperations::RotateContour(scaledRenderContour, finalRot, angle, cv::Point(imgSize.width / 2, imgSize.height / 2));
 
 	//remove later
 	drawContVec.push_back(finalRot);
@@ -216,14 +217,20 @@ int main(void)
 		return 0;
 	}
 	               
-	result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", testImg.size().width, testImg.size().height);
+	result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", imgSize.width, imgSize.height, RENDERER_MODE::DISPLAY);
 	if (result)
 	{
 		int id = testResult2.lowestRenderID;
 		//DisplayRendererObject->SwitchToDisplayMode(drawing);
 		DisplayRendererObject->SwitchToDisplayMode(testImg);
+		//massCentreRenderCont to massCentreImageCont SCREEN TO WORLD
+		auto newPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreImageCont.x, massCentreImageCont.y), glm::vec2(imgSize.width, imgSize.height));
+
+		//DisplayRendererObject->SetModelPosition( glm::vec3(newPos.x, newPos.y, 0));
 		DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
 		DisplayRendererObject->SetModelScale(glm::vec3{ 1+ scaleAmount , 1+ scaleAmount, 1+scaleAmount});
+
+
 		DisplayRendererObject->Run();
 	}
 	else

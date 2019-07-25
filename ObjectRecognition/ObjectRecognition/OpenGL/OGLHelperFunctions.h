@@ -8,6 +8,13 @@
 #include <sstream>
 
 
+enum RENDERER_MODE
+{
+	CAMERAMOVE,
+	GENERATERENDERS,
+	DISPLAY
+};
+
 namespace OGLHelperFunctions //optional, just for clarity
 {
 

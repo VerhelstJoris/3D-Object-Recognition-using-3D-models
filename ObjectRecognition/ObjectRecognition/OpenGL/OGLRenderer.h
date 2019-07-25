@@ -7,18 +7,10 @@
 
 
 namespace cv{class Mat;}	//forward declaration
-//namespace glm { struct vec2; struct vec3; }
 
 class Mesh;
-
 struct RenderStruct;
-
-enum RENDERER_MODE
-{
-	CAMERAMOVE,
-	GENERATERENDERS,
-	DISPLAY
-};
+enum RENDERER_MODE;
 
 class OGLRenderer
 {
@@ -26,13 +18,16 @@ public:
 	OGLRenderer();
 	~OGLRenderer();
 
-	bool Initialize(const char* modelFilePath, int windowWidth, int windowHeight);
+	bool Initialize(const char* modelFilePath, int windowWidth, int windowHeight, RENDERER_MODE mode);
 	void Shutdown();
 	void Run();
 
 	void SwitchToDisplayMode(cv::Mat imageToConvert);
 	void SetModelOrientation(glm::vec3 rotDeg);
 	void SetModelScale(glm::vec3 scaleVec);
+	void SetModelPosition(glm::vec3 newPos);
+
+	glm::vec4 GetWorldCoordFromWindowCoord(glm::vec2 imageCoord, glm::vec2 imageDimensions);
 
 	std::vector<RenderStruct> GetScreenRenders() { return m_renders; };
 
@@ -54,12 +49,17 @@ private:
 	unsigned int m_vertexArrayID, m_programID, m_matrixID, m_viewMatrixID, m_modelMatrixID; // GLUINT
 	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT POSTPROCESSING
 
+
+	//matrices
+	glm::mat4 m_projectionMatrix, m_viewMatrix;
+
 	//camera position
-	float m_cameraPosX=0.0f, m_cameraPosY=0.0f, m_cameraPosZ=7.0f;
+	glm::vec3 m_cameraPos = {0,0,7};
 
 	//orientation of the object
-	glm::vec3 m_Orientation = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 m_Scale = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec3 m_orientation = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 m_scale = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	const float m_angleDifferenceDegrees = 6.0f;
 	const int m_amountOfRowsToRender = 1;
@@ -68,7 +68,7 @@ private:
 	int m_amountOfRenders = 0;
 
 	unsigned int m_blackColor[4] = { 0, 0, 0, 1 };		//GLUINT
-	RENDERER_MODE m_mode = RENDERER_MODE::CAMERAMOVE;
+	RENDERER_MODE m_mode;
 
 	//OPENCV
 	std::vector<RenderStruct> m_renders;

@@ -52,9 +52,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OpenGL\Shaders\FragmentShader.glsl" />
     <None Include="OpenGL\Shaders\VertexShader.glsl" />
     <None Include="OpenGL\Shaders\PassThroughVertexShader.glsl" />
     <None Include="OpenGL\Shaders\TextureFragmentShader.glsl" />
+    <None Include="OpenGL\Shaders\FragmentShaderRender.glsl" />
+    <None Include="OpenGL\Shaders\FragmentShaderDisplay.glsl" />
   </ItemGroup>
 </Project>

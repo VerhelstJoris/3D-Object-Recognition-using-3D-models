@@ -29,8 +29,9 @@ OGLRenderer::~OGLRenderer()
 {
 }
 
-bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int windowHeight)
+bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int windowHeight, RENDERER_MODE mode)
 {
+	m_mode = mode;
 
 	std::cout << std::endl << "=======================================" << std::endl << "INITIALIZING RENDERER" << std::endl << std::endl;
 
@@ -95,7 +96,14 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	glBindVertexArray(m_vertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	m_programID = OGLHelperFunctions::LoadShaders("OpenGL/Shaders/VertexShader.glsl", "OpenGL/Shaders/FragmentShader.glsl");
+	if (m_mode == RENDERER_MODE::GENERATERENDERS || m_mode == RENDERER_MODE::CAMERAMOVE)
+	{
+		m_programID = OGLHelperFunctions::LoadShaders("OpenGL/Shaders/VertexShader.glsl", "OpenGL/Shaders/FragmentShaderRender.glsl");
+	}
+	else
+	{
+		m_programID = OGLHelperFunctions::LoadShaders("OpenGL/Shaders/VertexShader.glsl", "OpenGL/Shaders/FragmentShaderDisplay.glsl");
+	}
 
 	// Get a handle for our "MVP" uniform
 	m_matrixID = glGetUniformLocation(m_programID, "MVP");
@@ -173,6 +181,15 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	#pragma endregion
 
 
+	//matrices
+	m_projectionMatrix = glm::perspective(glm::radians(45.0f), (float)m_WindowWidth / (float)m_WindowHeight, 0.1f, 100.0f);
+	m_viewMatrix = glm::lookAt(
+		m_cameraPos, // Camera is here, in World Space
+		glm::vec3(m_cameraPos.x, m_cameraPos.y, m_cameraPos.z - 10.0f), // and looks forward
+		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+	);
+
+
 	if (m_mode == RENDERER_MODE::CAMERAMOVE)
 	{
 		std::cout << std::endl << std::endl;
@@ -212,7 +229,7 @@ void OGLRenderer::Run()
 	bool keepRunning = true;
 
 	//BEST APPROACH???
-	m_Orientation.x = -(m_angleDifferenceDegrees * 0.0174532925f)* (int)(m_amountOfRowsToRender / 2);
+	m_orientation.x = -(m_angleDifferenceDegrees * 0.0174532925f)* (int)(m_amountOfRowsToRender / 2);
 
 
 	while (keepRunning==true)
@@ -254,35 +271,35 @@ void OGLRenderer::Run()
 
 		#pragma region MATRICES
 	
-		glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)m_WindowWidth / (float)m_WindowHeight, 0.1f, 100.0f);
-		glm::mat4 ViewMatrix = glm::lookAt(
-			glm::vec3(m_cameraPosX, m_cameraPosY, m_cameraPosZ), // Camera is here, in World Space
-			glm::vec3(m_cameraPosX, m_cameraPosY, m_cameraPosZ-10.0f), // and looks forward
+		m_viewMatrix = glm::lookAt(
+			m_cameraPos, // Camera is here, in World Space
+			glm::vec3(m_cameraPos.x, m_cameraPos.y, m_cameraPos.z-10.0f), // and looks forward
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
 	
 		//MODEL MATRICES
 	//==============================================
-	//m_Orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
+	//m_orientation.y += 3.14159f / 2.0f * m_angleDifferenceDegrees;
 		if (m_mode == RENDERER_MODE::GENERATERENDERS)
 		{
-			m_Orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian			
+			m_orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian			
 		}
 		// Build the model matrix
-		//glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_Orientation.y, m_Orientation.x, m_Orientation.z);
-		glm::mat4 RotationMatrix = glm::eulerAngleZYX(m_Orientation.z, m_Orientation.y, m_Orientation.x);
+		//glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_orientation.y, m_orientation.x, m_orientation.z);
+		glm::mat4 RotationMatrix = glm::eulerAngleZYX(m_orientation.z, m_orientation.y, m_orientation.x);
 		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
 		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1,1,1));			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
-		ModelMatrix = glm::scale(ModelMatrix, m_Scale);						//SCALE AGAIN
+		ModelMatrix = glm::scale(ModelMatrix, m_scale);						//SCALE AGAIN
+		ModelMatrix = glm::translate(ModelMatrix, m_position);
 
-		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+		glm::mat4 MVP = m_projectionMatrix * m_viewMatrix * ModelMatrix;
 	
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
 		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &m_viewMatrix[0][0]);
 	
 		#pragma endregion
 	
@@ -343,9 +360,9 @@ void OGLRenderer::Run()
 
 				RenderStruct renderInfo;
 				renderInfo.renderImage = ConvertOpenGLToMat(m_bufferName);
-				renderInfo.rotationX = m_Orientation.x;
-				renderInfo.rotationY = m_Orientation.y;
-				renderInfo.rotationZ = m_Orientation.z;
+				renderInfo.rotationX = m_orientation.x;
+				renderInfo.rotationY = m_orientation.y;
+				renderInfo.rotationZ = m_orientation.z;
 
 				m_renders.push_back(renderInfo);
 				m_amountOfRenders++;
@@ -360,8 +377,8 @@ void OGLRenderer::Run()
 				}
 				else
 				{
-					m_Orientation.x += (m_angleDifferenceDegrees * 0.0174532925f);
-					m_Orientation.y =0;			//degree to radian
+					m_orientation.x += (m_angleDifferenceDegrees * 0.0174532925f);
+					m_orientation.y =0;			//degree to radian
 					std::cout << "NEXT ROW" << std::endl;
 					m_amountOfRenders = 0;
 				}
@@ -385,31 +402,31 @@ void OGLRenderer::ProcessUserInput()
 		//move UP/DOWN
 		if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			m_cameraPosY += 0.1f;
+			m_cameraPos.y += 0.1f;
 		}
 		else if (glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		{
-			m_cameraPosY -= 0.1f;
+			m_cameraPos.y -= 0.1f;
 		}
 
 		//MOVE FORWARD/BACK
 		if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
 		{
-			m_cameraPosZ -= 0.1f;
+			m_cameraPos.z -= 0.1f;
 		}
 		else if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
 		{
-			m_cameraPosZ += 0.1f;
+			m_cameraPos.z += 0.1f;
 		}
 
 		//MOVE LEFT/RIGHT
 		if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
 		{
-			m_cameraPosX -= 0.1f;
+			m_cameraPos.x -= 0.1f;
 		}
 		else if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
 		{
-			m_cameraPosX += 0.1f;
+			m_cameraPos.x += 0.1f;
 		}
 
 		//CONFIRM AND START RENDERING
@@ -426,8 +443,8 @@ void OGLRenderer::ProcessUserInput()
 		////TEST ROTATION
 		//if (glfwGetKey(m_window, GLFW_KEY_P) == GLFW_PRESS)
 		//{
-		//	m_Orientation.z += 6 * 0.0174532925f;
-		//	std::cout << m_Orientation.z << std::endl;
+		//	m_orientation.z += 6 * 0.0174532925f;
+		//	std::cout << m_orientation.z << std::endl;
 		//}
 
 	}
@@ -511,12 +528,40 @@ void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
 
 void OGLRenderer::SetModelOrientation(glm::vec3 rotDeg)
 { 
-	m_Orientation = glm::vec3(rotDeg.x , rotDeg.y , rotDeg.z);
+	m_orientation = glm::vec3(rotDeg.x , rotDeg.y , rotDeg.z);
 	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
 };
 
 void OGLRenderer::SetModelScale(glm::vec3 scaleVec)
 {
-	m_Scale = glm::vec3(scaleVec.x, scaleVec.y, scaleVec.z);
+	m_scale = glm::vec3(scaleVec.x, scaleVec.y, scaleVec.z);
 	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
 };
+
+void OGLRenderer::SetModelPosition(glm::vec3 newPos)
+{
+	m_position = glm::vec3(newPos.x, newPos.y, newPos.z);
+}
+
+
+glm::vec4 OGLRenderer::GetWorldCoordFromWindowCoord(glm::vec2 imageCoord, glm::vec2 imageDimensions)
+{
+	//https://stackoverflow.com/questions/7692988/opengl-math-projecting-screen-space-to-world-space-coords
+
+	glm::mat4 temp = m_projectionMatrix * m_viewMatrix;
+	glm::mat4 inversed =  glm::inverse(temp);
+
+	//map the imageCoord to a range [-1,1]
+	float mappedX = 1.0f - (2.0f*((float)(imageCoord.x) / (imageDimensions.x)));
+	float mappedY = 1.0f - (2.0f*((float)(imageCoord.y) / (imageDimensions.y)));
+	glm::vec4 vec = glm::vec4(mappedX, mappedY, 1.0, 1.0);
+
+	glm::vec4 pos = vec * inversed;
+	pos.x *= pos.w;
+	pos.y *= pos.w;
+	pos.z *= pos.w;
+
+	std::cout << "WORLD POS: " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
+
+	return pos;
+}
