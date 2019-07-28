@@ -287,11 +287,12 @@ void OGLRenderer::Run()
 		// Build the model matrix
 		//glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_orientation.y, m_orientation.x, m_orientation.z);
 		glm::mat4 RotationMatrix = glm::eulerAngleZYX(m_orientation.z, m_orientation.y, m_orientation.x);
-		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));	//object is located at (0,0,0)
-		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1,1,1));			//scale (1,1,1)
+		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), m_position);	//object is located at (0,0,0)
+		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), m_scale);			//scale (1,1,1)
 		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
-		ModelMatrix = glm::scale(ModelMatrix, m_scale);						//SCALE AGAIN
-		ModelMatrix = glm::translate(ModelMatrix, m_position);
+
+		//ModelMatrix = glm::scale(ModelMatrix, m_scale);						//SCALE AGAIN
+		//ModelMatrix = glm::translate(ModelMatrix, m_position);
 
 		glm::mat4 MVP = m_projectionMatrix * m_viewMatrix * ModelMatrix;
 	

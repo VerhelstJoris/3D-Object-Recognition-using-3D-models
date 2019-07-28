@@ -65,9 +65,13 @@ int main(void)
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_scale.jpg");
-	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated4.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated4.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated5.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test3.jpg");
+	//RENDER WITH TEX AND BASI
+	//cv::Mat testImg = cv::imread("../Resources/Test/Render1_rot.png");
+	cv::Mat testImg = cv::imread("../Resources/Test/Render1.png");
+
 	//FINAL IMAGE
 	//cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
 
@@ -153,11 +157,13 @@ int main(void)
 	
 	int highestAmountOfPoints = std::max(scaledRenderContour.size(), imageContTrans.size());
 	//shuffle both contours for uniform sampling
-	ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, highestAmountOfPoints);
-	ImageOperations::simpleContour(imageContTrans, imageContShuffled, highestAmountOfPoints);
+	//dummy points might be bad ??
+	ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, scaledRenderContour.size());
+	ImageOperations::simpleContour(imageContTrans, imageContShuffled, imageContTrans.size());
 
 	//DISTANCE TEST
 	cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
+	mysc->setAngularBins(5);
 
 	double imageAngle, angleRect;
 	
@@ -174,11 +180,12 @@ int main(void)
 	int lowestID = 0;
 	for (size_t i = 0; i < 4; i++)
 	{
-		std::vector<cv::Point> rotated;
+		std::vector<cv::Point> rotated, approximated;
 		ImageOperations::RotateContour(renderContShuffled, rotated, imageAngle + (i*90), cv::Point(imgSize.width / 2, imgSize.height / 2));
 
+
 		float dis = mysc->computeDistance(rotated, imageContShuffled);
-		std::cout << dis << " | ";
+		std::cout << "Dist: " << dis << " | ";
 
 		if (dis <= lowestDistance)
 		{
@@ -188,7 +195,7 @@ int main(void)
 	}
 	double angle = imageAngle + (lowestID * 90);
 
-	std::cout << "FINAL ANGLE: " << angle << std::endl;
+	std::cout << std::endl <<  "FINAL ANGLE: " << angle << std::endl;
 
 	std::vector<cv::Point> finalRot;
 
@@ -210,34 +217,34 @@ int main(void)
 #pragma region DISPLAY
 	//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
 	//create new object instead of reusing because resizing the window at runtime isn't easy
-	DisplayRendererObject = new OGLRenderer;
-	if (!DisplayRendererObject)
-	{
-		std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
-		return 0;
-	}
-	               
-	result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", imgSize.width, imgSize.height, RENDERER_MODE::DISPLAY);
-	if (result)
-	{
-		int id = testResult2.lowestRenderID;
-		//DisplayRendererObject->SwitchToDisplayMode(drawing);
-		DisplayRendererObject->SwitchToDisplayMode(testImg);
-		//massCentreRenderCont to massCentreImageCont SCREEN TO WORLD
-		auto newPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreImageCont.x, massCentreImageCont.y), glm::vec2(imgSize.width, imgSize.height));
-
-		//DisplayRendererObject->SetModelPosition( glm::vec3(newPos.x, newPos.y, 0));
-		DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
-		DisplayRendererObject->SetModelScale(glm::vec3{ 1+ scaleAmount , 1+ scaleAmount, 1+scaleAmount});
-
-
-		DisplayRendererObject->Run();
-	}
-	else
-	{
-		std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
-		return 0;
-	}
+	//DisplayRendererObject = new OGLRenderer;
+	//if (!DisplayRendererObject)
+	//{
+	//	std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
+	//	return 0;
+	//}
+	//               
+	//result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", imgSize.width, imgSize.height, RENDERER_MODE::DISPLAY);
+	//if (result)
+	//{
+	//	int id = testResult2.lowestRenderID;
+	//	//DisplayRendererObject->SwitchToDisplayMode(drawing);
+	//	DisplayRendererObject->SwitchToDisplayMode(testImg);
+	//	//massCentreRenderCont to massCentreImageCont SCREEN TO WORLD
+	//	auto newPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreImageCont.x, massCentreImageCont.y), glm::vec2(imgSize.width, imgSize.height));
+	//
+	//	DisplayRendererObject->SetModelPosition( glm::vec3(newPos.x, newPos.y, 0));
+	//	DisplayRendererObject->SetModelScale(glm::vec3{ 1+ scaleAmount , 1+ scaleAmount, 1+scaleAmount});
+	//	DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
+	//
+	//
+	//	DisplayRendererObject->Run();
+	//}
+	//else
+	//{
+	//	std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
+	//	return 0;
+	//}
 
 
 	//SHUTDOWN
@@ -249,9 +256,9 @@ int main(void)
 
 
 	//Shutdown and release the DISPLAY object.
-	DisplayRendererObject->Shutdown();
-	delete DisplayRendererObject;
-	DisplayRendererObject = 0;
+	//DisplayRendererObject->Shutdown();
+	//delete DisplayRendererObject;
+	//DisplayRendererObject = 0;
 
 #pragma endregion
 
