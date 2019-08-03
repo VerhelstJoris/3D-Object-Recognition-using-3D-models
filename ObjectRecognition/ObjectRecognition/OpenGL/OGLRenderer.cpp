@@ -113,6 +113,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 	//model
 	m_model = new Mesh();
 	m_model->LoadMesh(modelFilePath);
+	
 
 #pragma endregion
 
@@ -284,22 +285,37 @@ void OGLRenderer::Run()
 		{
 			m_orientation.y += (m_angleDifferenceDegrees * 0.0174532925f);			//degree to radian			
 		}
-		// Build the model matrix
-		//glm::mat4 RotationMatrix = glm::eulerAngleYXZ(m_orientation.y, m_orientation.x, m_orientation.z);
-		glm::mat4 RotationMatrix = glm::eulerAngleZYX(m_orientation.z, m_orientation.y, m_orientation.x);
-		glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0), m_position);	//object is located at (0,0,0)
-		glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0), m_scale);			//scale (1,1,1)
-		glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScalingMatrix;
-
-		//ModelMatrix = glm::scale(ModelMatrix, m_scale);						//SCALE AGAIN
-		//ModelMatrix = glm::translate(ModelMatrix, m_position);
-
-		glm::mat4 MVP = m_projectionMatrix * m_viewMatrix * ModelMatrix;
 	
+		glm::mat4 rotationMatrix = glm::eulerAngleZYX(m_orientation.z, m_orientation.y, m_orientation.x);
+		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0), m_position);	
+		glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0), m_scale);			
+	
+		// Build the model matrix
+		glm::vec4 pivotWorld;
+		if (m_mode == RENDERER_MODE::DISPLAY)
+		{
+			glm::mat4 modelMatrix =  translationMatrix * rotationMatrix * scalingMatrix;
+			glm::vec4 pivotObject = glm::vec4(0, 0, 0, 1);
+
+			pivotWorld = pivotObject * modelMatrix;
+			pivotWorld.x /= pivotWorld.w;
+			pivotWorld.y /= pivotWorld.w;
+			pivotWorld.z /= pivotWorld.w;
+		}
+		glm::mat4 minusPivot = glm::translate(glm::mat4(1.0), -m_pivot - m_pivotDiff);
+		glm::mat4 pivotMatrix = glm::translate(glm::mat4(1.0), m_pivot + m_pivotDiff);
+
+		glm::mat4 modelMatrixNew =  minusPivot * scalingMatrix * rotationMatrix * pivotMatrix * translationMatrix;
+		//glm::mat4 modelMatrixNew =  translationMatrix * rotationMatrix * scalingMatrix;
+
+		glm::mat4 MVP = m_projectionMatrix * m_viewMatrix * modelMatrixNew;
+	
+
+
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
 		glUniformMatrix4fv(m_matrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+		glUniformMatrix4fv(m_modelMatrixID, 1, GL_FALSE, &modelMatrixNew[0][0]);
 		glUniformMatrix4fv(m_viewMatrixID, 1, GL_FALSE, &m_viewMatrix[0][0]);
 	
 		#pragma endregion
@@ -387,7 +403,6 @@ void OGLRenderer::Run()
 		}
 	}
 }
-
 
 void OGLRenderer::ProcessUserInput()
 {
@@ -526,31 +541,31 @@ void OGLRenderer::SwitchToDisplayMode(cv::Mat imageToConvert)
 	ConvertMatToTexture(imageToConvert, m_MatTex);
 }
 
-
 void OGLRenderer::SetModelOrientation(glm::vec3 rotDeg)
 { 
-	m_orientation = glm::vec3(rotDeg.x , rotDeg.y , rotDeg.z);
+	m_orientation = rotDeg;
 	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
 };
 
 void OGLRenderer::SetModelScale(glm::vec3 scaleVec)
 {
-	m_scale = glm::vec3(scaleVec.x, scaleVec.y, scaleVec.z);
+	m_scale = scaleVec;
 	//std::cout << rot.x << " , " << rot.y << " ," << rot.z << std::endl;
 };
 
 void OGLRenderer::SetModelPosition(glm::vec3 newPos)
 {
-	m_position = glm::vec3(newPos.x, newPos.y, newPos.z);
+	m_position = newPos;
 }
+
+
 
 
 glm::vec4 OGLRenderer::GetWorldCoordFromWindowCoord(glm::vec2 imageCoord, glm::vec2 imageDimensions)
 {
 	//https://stackoverflow.com/questions/7692988/opengl-math-projecting-screen-space-to-world-space-coords
 
-	glm::mat4 temp = m_projectionMatrix * m_viewMatrix;
-	glm::mat4 inversed =  glm::inverse(temp);
+	glm::mat4 inversed =  glm::inverse(m_projectionMatrix * m_viewMatrix);
 
 	//map the imageCoord to a range [-1,1]
 	float mappedX = 1.0f - (2.0f*((float)(imageCoord.x) / (imageDimensions.x)));
@@ -558,9 +573,9 @@ glm::vec4 OGLRenderer::GetWorldCoordFromWindowCoord(glm::vec2 imageCoord, glm::v
 	glm::vec4 vec = glm::vec4(mappedX, mappedY, 1.0, 1.0);
 
 	glm::vec4 pos = vec * inversed;
-	pos.x *= pos.w;
-	pos.y *= pos.w;
-	pos.z *= pos.w;
+	pos.x /= pos.w;
+	pos.y /= pos.w;
+	pos.z /= pos.w;
 
 	std::cout << "WORLD POS: " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
 

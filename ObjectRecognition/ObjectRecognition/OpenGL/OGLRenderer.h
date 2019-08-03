@@ -26,6 +26,8 @@ public:
 	void SetModelOrientation(glm::vec3 rotDeg);
 	void SetModelScale(glm::vec3 scaleVec);
 	void SetModelPosition(glm::vec3 newPos);
+	void SetModelPivotDiff(glm::vec3 pivotDiff){m_pivotDiff = pivotDiff;};
+	
 
 	glm::vec4 GetWorldCoordFromWindowCoord(glm::vec2 imageCoord, glm::vec2 imageDimensions);
 
@@ -60,6 +62,8 @@ private:
 	glm::vec3 m_orientation = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 m_scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 m_pivot = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 m_pivotDiff = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	const float m_angleDifferenceDegrees = 6.0f;
 	const int m_amountOfRowsToRender = 1;

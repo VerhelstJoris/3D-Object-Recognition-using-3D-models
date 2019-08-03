@@ -207,7 +207,7 @@ namespace ImageOperations //optional, just for clarity
 		return rotated;
 	}
 
-	static bool FindBlobs(const std::vector<cv::Point> &contours, cv::Point2f &MassCentre, float& DiagonalLength)
+	static void FindBlobs(const std::vector<cv::Point> &contours, cv::Point2f &MassCentre, float& DiagonalLength)
 	{
 	
 		cv::Rect boundsRect;
@@ -227,8 +227,6 @@ namespace ImageOperations //optional, just for clarity
 		
 		//std::cout << "DIAGONAL LENGTH OF: " << diagonalLength << std::endl;
 		//std::cout << "CENTER AT: " << massCentre.x << ", " << massCentre.y << std::endl << std::endl;
-
-		return 1;
 	}
 
 	static bool TranslateContour(std::vector<cv::Point> contours, std::vector<cv::Point> &result, cv::Vec2f Translate)
