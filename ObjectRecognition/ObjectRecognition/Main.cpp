@@ -64,18 +64,24 @@ int main(void)
 	//==================================================================
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
-	cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_chunked.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_chunked.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_chunked2.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_scale.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated4.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated5.jpg");
 	//cv::Mat testImg = cv::imread("../Resources/Test/test3.jpg");
+
 	//RENDER WITH TEX AND BASIC SHADING
 	//cv::Mat testImg = cv::imread("../Resources/Test/Render1.png");
+	//cv::Mat testImg = cv::imread("../Resources/Test/Render1_chunked.png");
+	//cv::Mat testImg = cv::imread("../Resources/Test/Render1_chunked2.png");
+	//cv::Mat testImg = cv::imread("../Resources/Test/Render1_bg.png");
+	//cv::Mat testImg = cv::imread("../Resources/Test/Render2.png");
 	//cv::Mat testImg = cv::imread("../Resources/Test/Render3.png");
 
 	//FINAL IMAGE
-	//cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
+	cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
+	//cv::Mat testImg = cv::imread("../Resources/Test/stopsign4.jpg");
 
 	if (!testImg.data)
 	{
@@ -90,7 +96,6 @@ int main(void)
 
 	//CONTOUR MATCHING TEST
 	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg);
-	//imshow("MATCHING CONTOUR", matchingObject->ContourToMat(testResult2.lowestRenderID));
 	
 #pragma region ROTATION
 	
@@ -112,7 +117,6 @@ int main(void)
 	
 	std::vector<cv::Point> renderContTrans = testResult2.lowestContourRender;
 	ImageOperations::FindBlobs(testResult2.lowestContourRender, massCentreRenderCont, diagonalLengthRenderCont);
-	//ImageOperations::TranslateContourToPoint(testResult2.lowestContourRender, renderContTrans, cv::Point(imgSize.width/2,imgSize.height/2), massCentreRenderCont, diagonalLengthRenderCont);
 	
 	////translate image cont
 	cv::Point2f massCentreImageCont;
@@ -120,7 +124,6 @@ int main(void)
 	
 	std::vector<cv::Point> imageContTrans = testResult2.lowestContourImage;
 	ImageOperations::FindBlobs(testResult2.lowestContourImage, massCentreImageCont, diagonalLengthImageCont);
-	//ImageOperations::TranslateContourToPoint(testResult2.lowestContourImage, imageContTrans, cv::Point(imgSize.width / 2, imgSize.height / 2), massCentreImageCont, diagonalLengthImageCont);
 
 #pragma endregion
 
@@ -159,11 +162,13 @@ int main(void)
 	int highestAmountOfPoints = std::max(scaledRenderContour.size(), imageContTrans.size());
 	//shuffle both contours for uniform sampling
 	ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, highestAmountOfPoints);
+	//ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, scaledRenderContour.size());
 	ImageOperations::simpleContour(imageContTrans, imageContShuffled, highestAmountOfPoints);
+	//ImageOperations::simpleContour(imageContTrans, imageContShuffled, imageContTrans.size());
 
 	//DISTANCE TEST
 	cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
-	mysc->setAngularBins(5);
+	mysc->setAngularBins(60);
 
 	double imageAngle, angleRect;
 	
@@ -220,7 +225,7 @@ int main(void)
 
 			if (dis <= lowestDistance)
 			{
-				std::cout << "Lowest Distance in rot checks with angle: " << i * angleDiff << std::endl;
+				std::cout << std::endl	<< "Lowest Distance in rot checks with angle: " << i * angleDiff << std::endl;
 				lowestDistance = dis;
 				angleAdjustment = i * angleDiff;
 			}

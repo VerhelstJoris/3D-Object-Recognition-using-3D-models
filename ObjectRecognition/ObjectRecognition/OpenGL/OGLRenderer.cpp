@@ -183,6 +183,7 @@ bool OGLRenderer::Initialize(const char* modelFilePath, int windowWidth, int win
 
 
 	//matrices
+	//m_projectionMatrix = glm::ortho(0.0f, (float)m_WindowWidth, (float)m_WindowHeight, 0.0f, 0.1f, 100.0f);
 	m_projectionMatrix = glm::perspective(glm::radians(45.0f), (float)m_WindowWidth / (float)m_WindowHeight, 0.1f, 100.0f);
 	m_viewMatrix = glm::lookAt(
 		m_cameraPos, // Camera is here, in World Space

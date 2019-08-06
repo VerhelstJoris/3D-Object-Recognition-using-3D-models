@@ -70,11 +70,13 @@ namespace ImageOperations //optional, just for clarity
 	{
 		cv::Mat temp1 , temp2;
 		std::vector<std::vector<cv::Point>> contours;
+
 		temp1 = image;
 		
-		//cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
-		temp2 = ColorReduce(temp1, 2);
-		
+		cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
+		temp2 = ColorReduce(temp1, 4);
+		//temp2 = temp1;
+
 		cv::cvtColor(temp2, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
 		cv::threshold(temp1, temp2, 50, 255, cv::THRESH_BINARY);
 
@@ -84,6 +86,7 @@ namespace ImageOperations //optional, just for clarity
 		
 		cv::findContours(temp1, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 		
+
 		//remove small contours
 		float maxSize = image.size().width * image.size().height / 400.0f;
 		
@@ -100,47 +103,14 @@ namespace ImageOperations //optional, just for clarity
 				//std::cout << GetShapeFactor(contours[i]) << "VS: " << contourShapeFactor << std::endl;
 				i++;
 			}
-		}
 		
+			
+		}
+
 		result = contours;
 
-
-
-		//THRESHOLD THE IMAGE ? ? ? ? ? ? ? ?
-		//cv::Mat gray_image;
-		//cv::cvtColor(image, gray_image, cv::COLOR_BGR2GRAY);
-		//
-		//cv::Mat threshold;
-		//cv::threshold(gray_image, threshold, 50, 255, cv::THRESH_BINARY);
-		//
-		//cv::Mat blur;
-		//cv::blur(threshold, blur, cv::Size(5,5));
-		//
-		//
-		//std::vector<std::vector<cv::Point>> contours;
-		//
-		//cv::findContours(blur, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-		//
-		//
-		//float maxSize = image.size().width * image.size().height / 400.0f;
-		//
-		//for (size_t i = 0; i < contours.size();)
-		//{
-		//	double area = cv::contourArea(contours[i]);
-		//	if (area <= maxSize /*|| !inRange(contourShapeFactor-0.1, contourShapeFactor+0.1, GetShapeFactor(contours[i]))*/)
-		//	{
-		//		contours.erase(contours.begin() + i);
-		//		//std::cout << "my 'King Crimson' erases elements and skips past them" << std::endl;
-		//	}
-		//	else
-		//	{
-		//		//std::cout << GetShapeFactor(contours[i]) << "VS: " << contourShapeFactor << std::endl;
-		//		i++;
-		//	}
-		//}
-
 		std::vector<cv::Vec4i> hierarchyTemp;
-		cv::RNG rng(12345);
+		cv::RNG rng(27868);
 		cv::Mat drawing = cv::Mat::zeros(image.size(), CV_8UC3);     // change to the size of your image
 
 		for (int i = 0; i < contours.size(); i++) {
