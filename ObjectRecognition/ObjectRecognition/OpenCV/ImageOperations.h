@@ -66,7 +66,7 @@ namespace ImageOperations //optional, just for clarity
 
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult)
+	static bool ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult)
 	{
 		cv::Mat temp1;
 		std::vector<std::vector<cv::Point>> contours;
@@ -132,8 +132,14 @@ namespace ImageOperations //optional, just for clarity
 			
 		}
 
-		result = contours;
+		if (contours.size() <= 0)
+		{
+			std::cout << std::endl << "NO CONTOURS FOUND IN IMAGE THAT ARE USABLE" << std::endl;
+			return false;
+		}
 
+
+		result = contours;
 
 		//DRAW CONTOURS
 		std::vector<cv::Vec4i> hierarchyTemp;
@@ -149,7 +155,8 @@ namespace ImageOperations //optional, just for clarity
 
 		cv::waitKey(10);
 
-		return;
+		return true;
+
 	}
 
 	static void ExtractContourFromRender(const cv::Mat& image, std::vector<cv::Point>& result, int kernelSize = 50, int thresholdValue = 50, bool invertGrayScale = false)

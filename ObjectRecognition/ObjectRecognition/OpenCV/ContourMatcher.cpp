@@ -81,56 +81,61 @@ cv::Mat ContourMatcher::ContourToMat(int contourID)
 	return drawing;
 }
 
-ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image)
+ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image, bool& contoursFound)
 {
 	//get contours of  image
 	std::vector<std::vector<cv::Point>> imageContours;
 	std::vector<cv::Vec4i> contourHierarchy;
-	ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy);
-
-
-	double lowestResult = 10000000.0;
-	int lowestRenderID = 0;
-	int lowestImageContourID = 0;
-	for (size_t i = 0; i < m_renders.size(); i++)
-	{
-		double resultMatch = 0.0;
-
-		std::cout << std::fixed;
-		std::cout << std::setprecision(2);
-
-		for (size_t j = 0; j < imageContours.size(); j++)
-		{
-			resultMatch = cv::matchShapes(imageContours[j], m_contoursRenders[i], cv::CONTOURS_MATCH_I1, 0.0);
-			//std::cout << i << ": " << resultMatch << "with Contour " << j << " from the test image" << std::endl;
-			std::cout << resultMatch << " | ";
-			if (resultMatch <= lowestResult)
-			{
-				lowestResult = resultMatch;
-				lowestRenderID = (int)i;
-				lowestImageContourID = (int)j;
-			}
-		}
-
 	
-	}
-	std::cout << std::endl << "FINISHED MATCHING" << std::endl;
+	contoursFound = ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy);
 
 	ContourMatchOut output;
-	output.lowestImageContourID = lowestImageContourID;
-	output.lowestRenderID = lowestRenderID;
-	output.lowestResult = lowestResult;
-
-	output.lowestContourRender.reserve(m_contoursRenders[lowestRenderID].size());
-	std::copy(m_contoursRenders[lowestRenderID].begin(), m_contoursRenders[lowestRenderID].end(), std::back_inserter(output.lowestContourRender));
-
-	output.lowestContourImage.reserve(imageContours[lowestImageContourID].size());
-	std::copy(imageContours[lowestImageContourID].begin(), imageContours[lowestImageContourID].end(), std::back_inserter(output.lowestContourImage));
 	
-	std::cout << "Render with ID: " << output.lowestRenderID << " is the best fit with value: " << output.lowestResult << " to contour " << output.lowestImageContourID << std::endl << std::endl;
-	std::cout << std::setprecision(9);
+
+	if (contoursFound)
+	{
+
+		double lowestResult = 10000000.0;
+		int lowestRenderID = 0;
+		int lowestImageContourID = 0;
+		for (size_t i = 0; i < m_renders.size(); i++)
+		{
+			double resultMatch = 0.0;
+
+			std::cout << std::fixed;
+			std::cout << std::setprecision(2);
+
+			for (size_t j = 0; j < imageContours.size(); j++)
+			{
+				resultMatch = cv::matchShapes(imageContours[j], m_contoursRenders[i], cv::CONTOURS_MATCH_I1, 0.0);
+				//std::cout << i << ": " << resultMatch << "with Contour " << j << " from the test image" << std::endl;
+				std::cout << resultMatch << " | ";
+				if (resultMatch <= lowestResult)
+				{
+					lowestResult = resultMatch;
+					lowestRenderID = (int)i;
+					lowestImageContourID = (int)j;
+				}
+			}
 
 
+		}
+		std::cout << std::endl << "FINISHED MATCHING" << std::endl;
+
+		output.lowestImageContourID = lowestImageContourID;
+		output.lowestRenderID = lowestRenderID;
+		output.lowestResult = lowestResult;
+
+		output.lowestContourRender.reserve(m_contoursRenders[lowestRenderID].size());
+		std::copy(m_contoursRenders[lowestRenderID].begin(), m_contoursRenders[lowestRenderID].end(), std::back_inserter(output.lowestContourRender));
+
+		output.lowestContourImage.reserve(imageContours[lowestImageContourID].size());
+		std::copy(imageContours[lowestImageContourID].begin(), imageContours[lowestImageContourID].end(), std::back_inserter(output.lowestContourImage));
+
+		std::cout << "Render with ID: " << output.lowestRenderID << " is the best fit with value: " << output.lowestResult << " to contour " << output.lowestImageContourID << std::endl << std::endl;
+		std::cout << std::setprecision(9);
+	}
+	
 	return output;
 
 }
