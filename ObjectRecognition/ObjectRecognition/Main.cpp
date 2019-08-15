@@ -60,28 +60,45 @@ int main(void)
 	std::vector<RenderStruct> renderInfoVec = ContourRendererObject->GetScreenRenders();
 	matchingObject->Initialize(renderInfoVec);
 	
-	//OPENCV
-	//==================================================================
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_chunked.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_chunked2.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated3_scale.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated4.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test2_rotated5.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/test3.jpg");
-
+	std::vector<std::string> testImgVec;
+	//RENDERS
+	testImgVec.push_back("../Resources/Test/test2.jpg");
+	testImgVec.push_back("../Resources/Test/test2_rotated.jpg");
+	testImgVec.push_back("../Resources/Test/test2_rotated3.jpg");
+	testImgVec.push_back("../Resources/Test/test2_rotated3_chunked.jpg");
+	testImgVec.push_back("../Resources/Test/test2_rotated3_chunked2.jpg");
+	testImgVec.push_back("../Resources/Test/test2_rotated3_scale.jpg");
+	testImgVec.push_back("../Resources/Test/test2_rotated4.jpg");
+	testImgVec.push_back("../Resources/Test/test2_rotated5.jpg");
+	testImgVec.push_back("../Resources/Test/test3.jpg");
+	testImgVec.push_back("../Resources/Test/test3_rotated.jpg");
+	testImgVec.push_back("../Resources/Test/test3_chunked.jpg");
+	testImgVec.push_back("../Resources/Test/test3_chunked2.jpg");
 	//RENDER WITH TEX AND BASIC SHADING
-	//cv::Mat testImg = cv::imread("../Resources/Test/Render1.png");
-	//cv::Mat testImg = cv::imread("../Resources/Test/Render1_chunked.png");
-	//cv::Mat testImg = cv::imread("../Resources/Test/Render1_chunked2.png");
-	//cv::Mat testImg = cv::imread("../Resources/Test/Render1_bg.png");
-	//cv::Mat testImg = cv::imread("../Resources/Test/Render2.png");
-	//cv::Mat testImg = cv::imread("../Resources/Test/Render3.png");
 
-	//FINAL IMAGE
-	cv::Mat testImg = cv::imread("../Resources/Test/stopsign1.jpg");
-	//cv::Mat testImg = cv::imread("../Resources/Test/stopsign4.jpg");
+	testImgVec.push_back("../Resources/Test/Render1.png");
+	testImgVec.push_back("../Resources/Test/Render1_chunked.png");
+	testImgVec.push_back("../Resources/Test/Render1_chunked2.png");
+	testImgVec.push_back("../Resources/Test/Render2.png");
+	testImgVec.push_back("../Resources/Test/Render3.png");
+
+	//SCENE IMAGES
+	testImgVec.push_back("../Resources/Test/stopsign1.jpg");
+	testImgVec.push_back("../Resources/Test/stopsign2.jpg");
+	testImgVec.push_back("../Resources/Test/Render1_bg.png");
+	testImgVec.push_back("../Resources/Test/stopsign4.jpg");
+
+	int chosenID = 0;
+	std::cout <<std::end << "========================" << std::endl 
+		<< "ENTER TEST IMAGE ID " << std::endl;
+
+	for (size_t i = 0; i < testImgVec.size(); i++)
+	{
+		std::cout << i + 1 << ": " << testImgVec[i] << std::endl;
+	}
+	std::cin >> chosenID;
+
+	cv::Mat testImg = cv::imread(testImgVec[chosenID-1]);
 
 	if (!testImg.data)
 	{

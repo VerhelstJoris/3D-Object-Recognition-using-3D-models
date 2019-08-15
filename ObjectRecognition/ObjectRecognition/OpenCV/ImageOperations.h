@@ -68,28 +68,53 @@ namespace ImageOperations //optional, just for clarity
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
 	static void ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult)
 	{
-		cv::Mat temp1 , temp2;
+		cv::Mat temp1;
 		std::vector<std::vector<cv::Point>> contours;
 
+		//OLD
+		//========================
 		temp1 = image;
-		
-		cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height/2));
-		temp2 = ColorReduce(temp1, 4);
-		//temp2 = temp1;
 
-		cv::cvtColor(temp2, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
-		cv::threshold(temp1, temp2, 50, 255, cv::THRESH_BINARY);
+		//cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height / 2));
+		cv::blur(temp1, temp1, cv::Size(3, 3));
+		//temp1 = ColorReduce(temp1, 4);
+		cv::cvtColor(temp1, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
+		//cv::threshold(temp1, temp1, 75, 255, cv::THRESH_BINARY);
+		
+		int lowThreshold = 0;
+		cv::Canny(temp1, temp1, lowThreshold, lowThreshold*3, 3);
 
-		cv::blur(temp2, temp1, cv::Size(3,3));
+		//NEW TEST TO SEE IF BETTER RESULTS ARE ACHIEVABLE
+		//=========================
+		//Prepare the image for findContours
+		////cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height / 2));
+		//cv::cvtColor(temp1, temp1, cv::COLOR_BGR2GRAY);
+		//cv::blur(temp1, temp1, cv::Size(5, 5));
+		//int lowThreshold = 10;
+		//cv::Canny(temp1, temp1, lowThreshold, lowThreshold*3, 3);
 		
-		
-		
-		cv::findContours(temp1, contours, hierarchyResult, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-		
+
+		//LAPLACIAN TEST FOR FUTURE RESEARCH
+		//=========================
+		//cv::GaussianBlur(image, temp1, cv::Size(3, 3), 0, 0, cv::BORDER_DEFAULT);
+		//cv::cvtColor(temp1, temp1, cv::COLOR_BGR2GRAY);
+		//cv::Laplacian(temp1, temp2, CV_16S, 3, 1, 0, cv::BORDER_DEFAULT);
+		//cv::convertScaleAbs(temp2, temp1);
+		//
+		//cv::imshow("LAPLACIAN", temp1);
+		//cv::waitKey(10);
+		//
+		//int lowThreshold = 1;
+		//cv::Canny(temp1, temp1, lowThreshold, lowThreshold*3, 3);
+
+		//Find the contours
+		cv::findContours(temp1, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+
 
 		//remove small contours
-		float maxSize = image.size().width * image.size().height / 400.0f;
-		
+		float maxSize = image.size().width * image.size().height / 1600;
+		//float maxSize = 40;
+
 		for (size_t i = 0; i < contours.size();)
 		{
 			double area = cv::contourArea(contours[i]);
@@ -109,8 +134,10 @@ namespace ImageOperations //optional, just for clarity
 
 		result = contours;
 
+
+		//DRAW CONTOURS
 		std::vector<cv::Vec4i> hierarchyTemp;
-		cv::RNG rng(27868);
+		cv::RNG rng(897324);
 		cv::Mat drawing = cv::Mat::zeros(image.size(), CV_8UC3);     // change to the size of your image
 
 		for (int i = 0; i < contours.size(); i++) {
