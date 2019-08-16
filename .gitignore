@@ -33,7 +33,7 @@
 
 
 #ignore the resource files
-ObjectRecognition/Resources/
+ObjectRecognition/ObjectRecognition/Resources/
 #ignore the additional libraries
 ObjectRecognition/Dependencies/
 lib/
