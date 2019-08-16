@@ -4,6 +4,7 @@
 #include <opencv2/highgui.hpp>	//for test cv::imshow
 
 
+
 struct RenderStruct
 {
 	cv::Mat renderImage;
@@ -20,6 +21,7 @@ struct ContourMatchOut
 	std::vector<cv::Point> lowestContourRender;
 	std::vector<cv::Point> lowestContourImage;
 };
+
 
 namespace ImageOperations //optional, just for clarity
 {
@@ -66,7 +68,7 @@ namespace ImageOperations //optional, just for clarity
 
 	//KernelSize is the size of the dimensions of the 2D matrix used as kernel
 	//thresholdValue is the minimum value pixels need to be, after the image is turned to grayscale, to not be set to 0
-	static bool ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult)
+	static bool ExtractContourFromImage(const cv::Mat& image, std::vector<std::vector<cv::Point>>& result, std::vector<cv::Vec4i>& hierarchyResult, bool scaleImage)
 	{
 		cv::Mat temp1;
 		std::vector<std::vector<cv::Point>> contours;
@@ -75,7 +77,11 @@ namespace ImageOperations //optional, just for clarity
 		//========================
 		temp1 = image;
 
-		//cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height / 2));
+		if (scaleImage)
+		{
+			cv::resize(image, temp1, cv::Size(image.size().width / 2, image.size().height / 2));
+		}
+
 		cv::blur(temp1, temp1, cv::Size(3, 3));
 		//temp1 = ColorReduce(temp1, 4);
 		cv::cvtColor(temp1, temp1, cv::COLOR_BGR2GRAY);	// image to grayscale
@@ -111,9 +117,16 @@ namespace ImageOperations //optional, just for clarity
 		cv::findContours(temp1, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
 
+		float maxSize;
 		//remove small contours
-		float maxSize = image.size().width * image.size().height / 1600;
-		//float maxSize = 40;
+		if (scaleImage)
+		{
+			maxSize = image.size().width * image.size().height / 1600;
+		}
+		else
+		{
+			maxSize = image.size().width * image.size().height / 400;
+		}
 
 		for (size_t i = 0; i < contours.size();)
 		{
@@ -301,7 +314,7 @@ namespace ImageOperations //optional, just for clarity
 		result = resultVec;
 	}
 
-	static void simpleContour(const std::vector<cv::Point>& contour, std::vector<cv::Point>& result ,int n = 100)
+	static void ShuffleContour(const std::vector<cv::Point>& contour, std::vector<cv::Point>& result ,int n = 100)
 	{
 		std::vector<cv::Point> contourVec;
 

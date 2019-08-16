@@ -30,7 +30,7 @@ public:
 	~ContourMatcher();
 
 public:
-	ContourMatchOut MatchImgAgainstContours(cv::Mat image, bool& contoursFound);
+	ContourMatchOut MatchImgAgainstContours(cv::Mat image, bool& contoursFound, bool scaleTestImage);
 
 	bool Initialize(std::vector<RenderStruct>& renders);
 

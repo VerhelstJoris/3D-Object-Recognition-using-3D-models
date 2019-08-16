@@ -81,13 +81,13 @@ cv::Mat ContourMatcher::ContourToMat(int contourID)
 	return drawing;
 }
 
-ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image, bool& contoursFound)
+ContourMatchOut ContourMatcher::MatchImgAgainstContours(cv::Mat image, bool& contoursFound, bool scaleTestImage)
 {
 	//get contours of  image
 	std::vector<std::vector<cv::Point>> imageContours;
 	std::vector<cv::Vec4i> contourHierarchy;
 	
-	contoursFound = ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy);
+	contoursFound = ImageOperations::ExtractContourFromImage(image, imageContours, contourHierarchy, scaleTestImage);
 
 	ContourMatchOut output;
 	

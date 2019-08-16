@@ -303,7 +303,7 @@ void OGLRenderer::Run()
 			pivotWorld.y /= pivotWorld.w;
 			pivotWorld.z /= pivotWorld.w;
 		}
-		glm::mat4 minusPivot = glm::translate(glm::mat4(1.0), -m_pivot - m_pivotDiff);
+		glm::mat4 minusPivot = glm::translate(glm::mat4(1.0), -m_pivot + m_pivotDiff);
 		glm::mat4 pivotMatrix = glm::translate(glm::mat4(1.0), m_pivot + m_pivotDiff);
 
 		glm::mat4 modelMatrixNew =  minusPivot * scalingMatrix * rotationMatrix * pivotMatrix * translationMatrix;
@@ -582,3 +582,4 @@ glm::vec4 OGLRenderer::GetWorldCoordFromWindowCoord(glm::vec2 imageCoord, glm::v
 
 	return pos;
 }
+

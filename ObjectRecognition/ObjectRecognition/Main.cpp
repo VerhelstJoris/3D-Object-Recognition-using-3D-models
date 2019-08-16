@@ -60,7 +60,9 @@ int main(void)
 	std::vector<RenderStruct> renderInfoVec = ContourRendererObject->GetScreenRenders();
 	matchingObject->Initialize(renderInfoVec);
 	
+	std::cout << std::endl << "=================================" << std::endl;
 	std::vector<std::string> testImgVec;
+	//CHOOSE A TESTIMAGE
 	//RENDERS
 	testImgVec.push_back("../Resources/Test/test2.jpg");
 	testImgVec.push_back("../Resources/Test/test2_rotated.jpg");
@@ -105,6 +107,24 @@ int main(void)
 		std::cout << "FAILED TO LOAD IN IMAGE" << std::endl;
 	}
 	
+	//CHOOSE WHETHER OR NOT TO RESCALE THE CHOSEN IMAGE FOR DEMONSTRATION
+	
+	std::cout << "RESCALE THE IMAGE?? (y/n)" << std::endl;
+
+	char answer;
+	bool scaleTestImage=false;
+	std::cin >> answer;
+	if (answer == 'y')
+	{
+		scaleTestImage = true;
+		std::cout << "test image will be scaled down during the contour extraction process" << std::endl;
+	}
+	else if (answer == 'n')
+	{
+		scaleTestImage = false;
+		std::cout << "test image will NOT be scaled down during the contour extraction process" << std::endl;
+	}
+
 	// Shutdown and release the RENDERER object.
 	ContourRendererObject->Shutdown();
 	delete ContourRendererObject;
@@ -113,7 +133,7 @@ int main(void)
 
 	//CONTOUR MATCHING TEST
 	bool contoursFoundInTestImg;
-	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg, contoursFoundInTestImg);
+	ContourMatchOut testResult2 = matchingObject->MatchImgAgainstContours(testImg, contoursFoundInTestImg, scaleTestImage);
 	
 	if (contoursFoundInTestImg)
 	{
@@ -175,20 +195,21 @@ int main(void)
 
 #pragma region DISTANCE
 
-		std::cout << std::endl << "=======================================" << std::endl << "DISTANCE CHECKS" << std::endl << std::endl;
+		std::cout << std::endl << "=======================================" << std::endl << "SHAPE CONTEXT DISTANCE" << std::endl << std::endl;
 
+		//prepare both contours
 		std::vector<cv::Point> renderContShuffled, imageContShuffled;
 
 		int highestAmountOfPoints = std::max(scaledRenderContour.size(), imageContTrans.size());
 		//shuffle both contours for uniform sampling
-		ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, highestAmountOfPoints);
-		//ImageOperations::simpleContour(scaledRenderContour, renderContShuffled, scaledRenderContour.size());
-		ImageOperations::simpleContour(imageContTrans, imageContShuffled, highestAmountOfPoints);
-		//ImageOperations::simpleContour(imageContTrans, imageContShuffled, imageContTrans.size());
+		ImageOperations::ShuffleContour(scaledRenderContour, renderContShuffled, highestAmountOfPoints);
+		//ImageOperations::ShuffleContour(scaledRenderContour, renderContShuffled, scaledRenderContour.size());
+		ImageOperations::ShuffleContour(imageContTrans, imageContShuffled, highestAmountOfPoints);
+		//ImageOperations::ShuffleContour(imageContTrans, imageContShuffled, imageContTrans.size());
 
-		//DISTANCE TEST
 		cv::Ptr <cv::ShapeContextDistanceExtractor> mysc = cv::createShapeContextDistanceExtractor();
 		mysc->setAngularBins(60);
+		mysc->setRadialBins(5);
 
 		double imageAngle, angleRect;
 
@@ -223,7 +244,8 @@ int main(void)
 		//calculations compensating for wrong moments calculatios
 		double angleAdjustment = 0.0;
 		double angleDiff = 1.0;
-		//int iteration = 0;	//drawing
+		std::cout << std::endl << "PRECISION SHAPE CONTEXT DISTANCE CHECKS" << std::endl;
+
 		for (int i = -4; i <= 4; i++)
 		{
 			if (i != 0)
@@ -269,7 +291,7 @@ int main(void)
 
 #pragma DRAWING ONLY
 
-		//Get image cont data
+		//Get image contour data
 		cv::Point2f massCentreImgCont;
 		float diagonalLength2;
 		ImageOperations::FindBlobs(testResult2.lowestContourImage, massCentreImageCont, diagonalLength2);
@@ -277,14 +299,13 @@ int main(void)
 		float diagonalLength;
 		ImageOperations::TranslateContourToPoint(finalRot, renderContTrans, massCentreImageCont, massCentreRenderCont, diagonalLength);
 
-
-		//remove later
+		//DRAWING
 		drawContVec.push_back(renderContTrans);
 		drawContVec.push_back(imageContTrans);
 		cv::drawContours(drawing, drawContVec, 0, cv::Scalar(0, 0, 255));
 		cv::drawContours(drawing, drawContVec, 1, cv::Scalar(0, 255, 0));
 
-		cv::imshow("RESULT", drawing);
+		cv::imshow("RESULTING MATCH", drawing);
 #pragma endregion
 
 
@@ -295,38 +316,37 @@ int main(void)
 #pragma region DISPLAY
 		//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
 		//create new object instead of reusing because resizing the window at runtime isn't easy
-		DisplayRendererObject = new OGLRenderer;
-		if (!DisplayRendererObject)
-		{
-			std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
-			return 0;
-		}
+		//DisplayRendererObject = new OGLRenderer;
+		//if (!DisplayRendererObject)
+		//{
+		//	std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
+		//	return 0;
+		//}
 
-		result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", imgSize.width, imgSize.height, RENDERER_MODE::DISPLAY);
-		if (result)
-		{
-			int id = testResult2.lowestRenderID;
-			//DisplayRendererObject->SwitchToDisplayMode(drawing);
-			DisplayRendererObject->SwitchToDisplayMode(testImg);
-			//massCentreRenderCont to massCentreImageCont SCREEN TO WORLD
-			auto newPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreImageCont.x, massCentreImageCont.y), glm::vec2(imgSize.width, imgSize.height));
-			auto originalPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreRenderCont.x, massCentreRenderCont.y), glm::vec2(imgSize.width, imgSize.height));
-
-
-			DisplayRendererObject->SetModelPosition(glm::vec3(newPos.x, newPos.y, 0));
-			DisplayRendererObject->SetModelPivotDiff(glm::vec3(originalPos.x, originalPos.y, 0));
-			//DisplayRendererObject->SetModelPosition( glm::vec3(newPos.x, -newPos.y , 0));
-			DisplayRendererObject->SetModelScale(glm::vec3{ 1 + scaleAmount , 1 + scaleAmount, 1 + scaleAmount });
-			DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
-
-
-			DisplayRendererObject->Run();
-		}
-		else
-		{
-			std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
-			return 0;
-		}
+		//result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", imgSize.width, imgSize.height, RENDERER_MODE::DISPLAY);
+		//if (result)
+		//{
+		//	int id = testResult2.lowestRenderID;
+		//	//DisplayRendererObject->SwitchToDisplayMode(drawing);
+		//	DisplayRendererObject->SwitchToDisplayMode(testImg);
+		//	//massCentreRenderCont to massCentreImageCont SCREEN TO WORLD
+		//	auto newPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreImageCont.x, massCentreImageCont.y), glm::vec2(imgSize.width, imgSize.height));
+		//	auto originalPos = glm::vec4(0, 0, 0, 1.0);
+		//
+		//
+		//	DisplayRendererObject->SetModelPosition(glm::vec3(newPos.x, newPos.y, 0));
+		//	DisplayRendererObject->SetModelPivotDiff(glm::vec3(newPos.x - originalPos.x, newPos.y - originalPos.y, 0));
+		//	DisplayRendererObject->SetModelScale(glm::vec3{ 1 + scaleAmount , 1 + scaleAmount, 1 + scaleAmount });
+		//	DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
+		//
+		//
+		//	DisplayRendererObject->Run();
+		//}
+		//else
+		//{
+		//	std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
+		//	return 0;
+		//}
 
 
 		//SHUTDOWN
@@ -338,9 +358,9 @@ int main(void)
 
 
 		//Shutdown and release the DISPLAY object.
-		DisplayRendererObject->Shutdown();
-		delete DisplayRendererObject;
-		DisplayRendererObject = 0;
+		//DisplayRendererObject->Shutdown();
+		//delete DisplayRendererObject;
+		//DisplayRendererObject = 0;
 
 #pragma endregion
 	}

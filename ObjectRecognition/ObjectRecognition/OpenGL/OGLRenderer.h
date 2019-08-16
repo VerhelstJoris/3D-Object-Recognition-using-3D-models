@@ -31,6 +31,7 @@ public:
 
 	glm::vec4 GetWorldCoordFromWindowCoord(glm::vec2 imageCoord, glm::vec2 imageDimensions);
 
+
 	std::vector<RenderStruct> GetScreenRenders() { return m_renders; };
 
 private:
