@@ -228,13 +228,12 @@ void OGLRenderer::Shutdown()
 
 void OGLRenderer::Run()
 {
-	bool keepRunning = true;
 
 	//BEST APPROACH???
 	m_orientation.x = -(m_angleDifferenceDegrees * 0.0174532925f)* (int)(m_amountOfRowsToRender / 2);
 
 
-	while (keepRunning==true)
+	while (m_keepRunning ==true)
 	{
 		//INPUT
 		
@@ -391,7 +390,7 @@ void OGLRenderer::Run()
 				if (m_currentRowsRendered >= m_amountOfRowsToRender)
 				{
 					std::cout << "RENDERS GENERATED" << std::endl << std::endl;
-					keepRunning = false;
+					m_keepRunning = false;
 				}
 				else
 				{
@@ -463,6 +462,12 @@ void OGLRenderer::ProcessUserInput()
 		//	m_orientation.z += 6 * 0.0174532925f;
 		//	std::cout << m_orientation.z << std::endl;
 		//}
+
+		if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		{
+			m_keepRunning = false;
+			
+		}
 
 	}
 

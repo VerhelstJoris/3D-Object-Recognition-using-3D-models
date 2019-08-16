@@ -53,6 +53,9 @@ private:
 	unsigned int m_renderTex, m_bufferName, m_quadVertexBuffer, m_quadProgramID, m_texID;		//GLUINT POSTPROCESSING
 
 
+	bool m_keepRunning = true;
+
+
 	//matrices
 	glm::mat4 m_projectionMatrix, m_viewMatrix;
 

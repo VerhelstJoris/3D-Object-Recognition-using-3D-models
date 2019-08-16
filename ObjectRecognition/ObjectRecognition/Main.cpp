@@ -45,7 +45,7 @@ int main(void)
 	}
 
 	//initialize the renderer
-	result = ContourRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", 800 , 600, RENDERER_MODE::CAMERAMOVE);
+	result = ContourRendererObject->Initialize("Resources/Stopsign/stopsign.obj", 800 , 600, RENDERER_MODE::CAMERAMOVE);
 	if (result)
 	{
 		ContourRendererObject->Run();
@@ -64,31 +64,31 @@ int main(void)
 	std::vector<std::string> testImgVec;
 	//CHOOSE A TESTIMAGE
 	//RENDERS
-	testImgVec.push_back("../Resources/Test/test2.jpg");
-	testImgVec.push_back("../Resources/Test/test2_rotated.jpg");
-	testImgVec.push_back("../Resources/Test/test2_rotated3.jpg");
-	testImgVec.push_back("../Resources/Test/test2_rotated3_chunked.jpg");
-	testImgVec.push_back("../Resources/Test/test2_rotated3_chunked2.jpg");
-	testImgVec.push_back("../Resources/Test/test2_rotated3_scale.jpg");
-	testImgVec.push_back("../Resources/Test/test2_rotated4.jpg");
-	testImgVec.push_back("../Resources/Test/test2_rotated5.jpg");
-	testImgVec.push_back("../Resources/Test/test3.jpg");
-	testImgVec.push_back("../Resources/Test/test3_rotated.jpg");
-	testImgVec.push_back("../Resources/Test/test3_chunked.jpg");
-	testImgVec.push_back("../Resources/Test/test3_chunked2.jpg");
+	testImgVec.push_back("Resources/Test/test2.jpg");
+	testImgVec.push_back("Resources/Test/test2_rotated.jpg");
+	testImgVec.push_back("Resources/Test/test2_rotated3.jpg");
+	testImgVec.push_back("Resources/Test/test2_rotated3_chunked.jpg");
+	testImgVec.push_back("Resources/Test/test2_rotated3_chunked2.jpg");
+	testImgVec.push_back("Resources/Test/test2_rotated3_scale.jpg");
+	testImgVec.push_back("Resources/Test/test2_rotated4.jpg");
+	testImgVec.push_back("Resources/Test/test2_rotated5.jpg");
+	testImgVec.push_back("Resources/Test/test3.jpg");
+	testImgVec.push_back("Resources/Test/test3_rotated.jpg");
+	testImgVec.push_back("Resources/Test/test3_chunked.jpg");
+	testImgVec.push_back("Resources/Test/test3_chunked2.jpg");
 	//RENDER WITH TEX AND BASIC SHADING
 
-	testImgVec.push_back("../Resources/Test/Render1.png");
-	testImgVec.push_back("../Resources/Test/Render1_chunked.png");
-	testImgVec.push_back("../Resources/Test/Render1_chunked2.png");
-	testImgVec.push_back("../Resources/Test/Render2.png");
-	testImgVec.push_back("../Resources/Test/Render3.png");
+	testImgVec.push_back("Resources/Test/Render1.png");
+	testImgVec.push_back("Resources/Test/Render1_chunked.png");
+	testImgVec.push_back("Resources/Test/Render1_chunked2.png");
+	testImgVec.push_back("Resources/Test/Render2.png");
+	testImgVec.push_back("Resources/Test/Render3.png");
 
 	//SCENE IMAGES
-	testImgVec.push_back("../Resources/Test/stopsign1.jpg");
-	testImgVec.push_back("../Resources/Test/stopsign2.jpg");
-	testImgVec.push_back("../Resources/Test/Render1_bg.png");
-	testImgVec.push_back("../Resources/Test/stopsign4.jpg");
+	testImgVec.push_back("Resources/Test/stopsign1.jpg");
+	testImgVec.push_back("Resources/Test/stopsign2.jpg");
+	testImgVec.push_back("Resources/Test/Render1_bg.png");
+	testImgVec.push_back("Resources/Test/stopsign4.jpg");
 
 	int chosenID = 0;
 	std::cout << std::endl << "========================" << std::endl 
@@ -107,8 +107,10 @@ int main(void)
 		std::cout << "FAILED TO LOAD IN IMAGE" << std::endl;
 	}
 	
+	cv::imshow("TEST IMAGE", testImg);
+	cv::waitKey(10);
+
 	//CHOOSE WHETHER OR NOT TO RESCALE THE CHOSEN IMAGE FOR DEMONSTRATION
-	
 	std::cout << "RESCALE THE IMAGE?? (y/n)" << std::endl;
 
 	char answer;
@@ -183,6 +185,7 @@ int main(void)
 		std::cout << "RENDER WIDTH: " << minAreaRender.size.width << " HEIGHT: " << minAreaRender.size.height << std::endl;
 
 		float scaleAmount = largestElemImg / largestElemRender;
+		
 		std::cout << "SCALE AMOUNT: " << scaleAmount << std::endl;
 
 		std::vector<cv::Point> scaledRenderContour;
@@ -257,13 +260,6 @@ int main(void)
 				float dis = mysc->computeDistance(rotatedNew, imageContShuffled);
 				std::cout << "Dist: " << dis << " | ";
 
-				//drawing
-				//std::vector<cv::Point> drawingTest;
-				//ImageOperations::RotateContour(scaledRenderContour, drawingTest, angleNew, massCentreRenderCont);
-				//drawContVec.push_back(drawingTest);
-				//
-				//cv::drawContours(drawing, drawContVec, iteration, cv::Scalar(255, 0, 0));
-				//iteration++;
 
 				if (dis <= lowestDistance)
 				{
@@ -316,58 +312,68 @@ int main(void)
 #pragma region DISPLAY
 		//create new OGLRenderer object to display the test image on the far clipping plane and display model overtop of it
 		//create new object instead of reusing because resizing the window at runtime isn't easy
-		//DisplayRendererObject = new OGLRenderer;
-		//if (!DisplayRendererObject)
-		//{
-		//	std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
-		//	return 0;
-		//}
-
-		//result = DisplayRendererObject->Initialize("../Resources/Stopsign/stopsign.obj", imgSize.width, imgSize.height, RENDERER_MODE::DISPLAY);
-		//if (result)
-		//{
-		//	int id = testResult2.lowestRenderID;
-		//	//DisplayRendererObject->SwitchToDisplayMode(drawing);
-		//	DisplayRendererObject->SwitchToDisplayMode(testImg);
-		//	//massCentreRenderCont to massCentreImageCont SCREEN TO WORLD
-		//	auto newPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreImageCont.x, massCentreImageCont.y), glm::vec2(imgSize.width, imgSize.height));
-		//	auto originalPos = glm::vec4(0, 0, 0, 1.0);
-		//
-		//
-		//	DisplayRendererObject->SetModelPosition(glm::vec3(newPos.x, newPos.y, 0));
-		//	DisplayRendererObject->SetModelPivotDiff(glm::vec3(newPos.x - originalPos.x, newPos.y - originalPos.y, 0));
-		//	DisplayRendererObject->SetModelScale(glm::vec3{ 1 + scaleAmount , 1 + scaleAmount, 1 + scaleAmount });
-		//	DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
-		//
-		//
-		//	DisplayRendererObject->Run();
-		//}
-		//else
-		//{
-		//	std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
-		//	return 0;
-		//}
+		DisplayRendererObject = new OGLRenderer;
+		if (!DisplayRendererObject)
+		{
+			std::cout << "FAILED TO CREATE THE DISPLAY RENDERER OBJECT" << std::endl;
+			return 0;
+		}
+		
+		result = DisplayRendererObject->Initialize("Resources/Stopsign/stopsign.obj", imgSize.width, imgSize.height, RENDERER_MODE::DISPLAY);
+		if (result)
+		{
+			int id = testResult2.lowestRenderID;
+			//DisplayRendererObject->SwitchToDisplayMode(drawing);
+			DisplayRendererObject->SwitchToDisplayMode(testImg);
+			//massCentreRenderCont to massCentreImageCont SCREEN TO WORLD
+			auto newPos = DisplayRendererObject->GetWorldCoordFromWindowCoord(glm::vec2(massCentreImageCont.x, massCentreImageCont.y), glm::vec2(imgSize.width, imgSize.height));
+			auto originalPos = glm::vec4(0, 0, 0, 1.0);
+		
+		
+			DisplayRendererObject->SetModelPosition(glm::vec3(newPos.x, newPos.y, 0));
+			DisplayRendererObject->SetModelPivotDiff(glm::vec3(newPos.x - originalPos.x, newPos.y - originalPos.y, 0));
+			if (scaleTestImage)
+			{
+				DisplayRendererObject->SetModelScale(glm::vec3{ 1 + (scaleAmount*2) , 1 + (scaleAmount*2), 1 + (scaleAmount*2) });
+			}
+			else
+			{
+				DisplayRendererObject->SetModelScale(glm::vec3{ 1 + scaleAmount , 1 + scaleAmount, 1 + scaleAmount });
+			}
+			DisplayRendererObject->SetModelOrientation(glm::vec3{ renderInfoVec[id].rotationX ,renderInfoVec[id].rotationY ,renderInfoVec[id].rotationZ + (angle*DEG2RAD) });
+		
+			
+			DisplayRendererObject->Run();
+		}
+		else
+		{
+			std::cout << "FAILED TO INITIALIZE THE DISPLAY RENDERER OBJECT" << std::endl;
+			return 0;
+		}
 
 
 		//SHUTDOWN
 		//====================
-		cv::waitKey();
-		std::cout << "SHUTTING DOWN" << std::endl;
+		//std::cout << "PRESS ENTER WITH ONE OF THE CONTOURS WINDOWS HIGHLIGHTED TO SHUT DOWN" << std::endl;
+		//cv::waitKey();
+		//std::cout << "SHUTTING DOWN" << std::endl;
 
 		cv::destroyAllWindows();
 
-
 		//Shutdown and release the DISPLAY object.
-		//DisplayRendererObject->Shutdown();
-		//delete DisplayRendererObject;
-		//DisplayRendererObject = 0;
+		DisplayRendererObject->Shutdown();
+		delete DisplayRendererObject;
+		DisplayRendererObject = 0;
 
 #pragma endregion
 	}
 	else
 	{
-		std::cout << "SHUTTING DOWN" << std::endl;
+		std::cout << "PRESS ENTER WITH ONE OF THE CONTOUR WINDOWS HIGHLIGHTED TO SHUT DOWN" << std::endl;
 		cv::waitKey();
+		std::cout << "SHUTTING DOWN" << std::endl;
+		cv::destroyAllWindows();
+
 	}
 
 	return 0;
