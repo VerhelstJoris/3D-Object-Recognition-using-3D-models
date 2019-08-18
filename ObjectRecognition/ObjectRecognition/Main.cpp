@@ -2,6 +2,9 @@
 #include <iostream>
 #include <vector>
 
+
+//THIS PROJECT REQUIRES THE OPENCV , OPENGL, GLEW, GLFW, GLM LIBRARIES TO FUNCTION PROPERLY
+
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
